@@ -45,7 +45,7 @@ compress-repo:
     set -euo pipefail
     cd mkosi.output
     shopt -s nullglob
-    split=(elementary_*.usr-*.*.raw)
+    split=(athens_*.usr-*.*.raw)
     if [ ${#split[@]} -eq 0 ]; then
         echo "Fatal: No split OS partition artifacts found to compress." >&2
         exit 1
@@ -59,8 +59,8 @@ checksum-repo:
     #!/usr/bin/env bash
     set -euo pipefail
     cd mkosi.output
-    sha256sum elementary_*.efi \
-        elementary_*.usr-*.*.raw.zst \
+    sha256sum athens_*.efi \
+        athens_*.usr-*.*.raw.zst \
         > SHA256SUMS
     cat SHA256SUMS
 

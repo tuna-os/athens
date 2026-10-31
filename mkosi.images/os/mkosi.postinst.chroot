@@ -29,4 +29,4 @@ ln -sf /dev/null /usr/lib/systemd/system/systemd-networkd-wait-online.service
 systemctl enable preset-global.service
 
 
-echo "VARIANT_ID=bst" >> /usr/lib/os-release
+echo "VARIANT_ID=athens" >> /usr/lib/os-release

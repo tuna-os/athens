@@ -1,68 +1,36 @@
 <div align="center">
-  <a href="https://elementary.io" align="center">
-    <center align="center">
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/elementary/brand/main/logomark-white.png">
-  <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/elementary/brand/main/logomark-black.png">
-  <img src="https://raw.githubusercontent.com/elementary/brand/main/logomark-black.png" alt="elementary" align="center" height="200">
-</picture>
-    </center>
-  </a>
-  <br>
-  <h1 align="center"><center>elementary OS</center></h1>
-  <h3 align="center"><center>Mkosi configurations for building elementary OS images</center></h3>
-  <br>
-  <br>
+  <h1>Athens</h1>
+  <p><strong>Athens is TunaOS's Pantheon-based BuildStream recipe.</strong></p>
 </div>
 
-<p align="center">
-  <img src="https://github.com/elementary/os/actions/workflows/daily-8.1.yml/badge.svg" alt="Daily 8.1">
-  <img src="https://github.com/elementary/os/actions/workflows/daily-9.0.yml/badge.svg" alt="Daily 9.0">
-</p>
+Athens adapts the recipe and image build setup from [JumpyVi's `elementary-build-meta`](https://github.com/jumpyvi/elementary-build-meta). JumpyVi's project is the basis of this recipe; Athens is not an original implementation by TunaOS. The desktop and applications are built from upstream Elementary/Pantheon and Freedesktop components, whose names and licenses remain those of their respective projects. See [LICENSE](LICENSE) and the source references in `elements/`.
 
----
+## Build locally
 
-# Building OS locally
+Runtime dependencies:
 
-You'll need the following runtime dependencies:
-* podman
-* just
-* zstd
-* systemd
+- podman
+- just
+- zstd
+- systemd
 
-Generate keys and then build with `just`
+Generate local signing keys and build:
 
 ```bash
 just genkey
 just do-release
 ```
 
-> Building may take 2h+ and around 90gb
+The full image build may take more than two hours and use around 90 GB of disk space. Build a single BuildStream element with `just bst build desktop/gala.bst`.
 
-This will result in a bootable .iso. </br>
-Test it out in a VM, or create an [USB install drive](https://elementary.io/docs/installation#installation) (>= 8GB)
+## Project status
 
-# Building elements
+The Athens recipe and image identity are being adapted for TunaOS. Release publishing, update feeds, signing credentials, and product qualification are not configured; do not enable release workflows or distribute images as production releases until those paths are reviewed.
 
-For exemple, to build gala
+## Acknowledgments
 
-`just bst build desktop/gala.bst`
-
-or switchboard
-
-`just bst build desktop/settings/switchboard.bst`
-
-
-# Further Information
-
-To get started with elementary OS, begin by [learning the basics](https://elementary.io/docs/learning-the-basics#learning-the-basics).
-
-For contributors, administrators and OEMs, check out the [wiki](https://github.com/elementary/os/wiki) for in-depth information.
-
-
-# Special thanks
-
-- [Zirconium](https://github.com/zirconium-dev/zirconium-hawaii) for providing the repo template
-- [FreeDesktopSDK](https://gitlab.com/freedesktop-sdk/freedesktop-sdk) for providing cache for upstream elements
-- [GnomeOS](https://gitlab.gnome.org/GNOME/gnome-build-meta) for providing remote elements definitions
-
+- [JumpyVi](https://github.com/jumpyvi) for the original BuildStream recipe and image-build basis in [`elementary-build-meta`](https://github.com/jumpyvi/elementary-build-meta).
+- [Elementary OS](https://github.com/elementary) and Pantheon component maintainers for the desktop components and upstream recipes.
+- [FreeDesktopSDK](https://gitlab.com/freedesktop-sdk/freedesktop-sdk) for build cache and upstream elements.
+- [GnomeOS](https://gitlab.gnome.org/GNOME/gnome-build-meta) for remote element definitions.
+- [Zirconium](https://github.com/zirconium-dev/zirconium-hawaii) for the repository template.

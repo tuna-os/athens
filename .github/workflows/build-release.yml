@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build and Release Athens
 
 on:
   workflow_call:
@@ -95,7 +95,7 @@ jobs:
           # Upload image parts
           cd mkosi.output
           find . -maxdepth 1 -type f \( \
-              -name "elementary_*.efi" \
+              -name "athens_*.efi" \
               -o -name "*.usr-*.*.raw.zst" \
               -o -name "*.usr-*-verity.*.raw.zst" \
               -o -name "*.usr-*-verity-sig.*.raw.zst" \
@@ -143,7 +143,7 @@ jobs:
             --cache-control "no-cache"
 
           # Live ISO + hash
-          ISO=$(basename $(ls mkosi.output/elementaryos-*.iso | head -n 1))
+          ISO=$(basename $(ls mkosi.output/athens-*.iso | head -n 1))
           echo "iso_${{ matrix.arch }}=$ISO" >> "$GITHUB_OUTPUT"
           ( cd mkosi.output && sha256sum "$ISO" > "$ISO.sha256.txt" )
 

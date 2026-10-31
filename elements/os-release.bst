@@ -7,14 +7,14 @@ variables:
   strip-binaries: ""
 
 environment:
-  PRETTY_NAME: "elementary OS Buildstream"
-  NAME: "elementary"
-  CODENAME: "bst"
+  PRETTY_NAME: "Athens"
+  NAME: "Athens"
+  CODENAME: "athens"
   HOME_URL: "none"
   DOCUMENTATION_URL: "none"
   SUPPORT_URL: "none"
-  ID: "elbst"
-  VERSION: "bst.%{freedesktop-sdk-flatpak-branch}"
+  ID: "athens"
+  VERSION: "athens.%{freedesktop-sdk-flatpak-branch}"
 
 config:
   build-commands:
@@ -33,7 +33,7 @@ config:
       BUG_REPORT_URL="${SUPPORT_URL}"
       DOCUMENTATION_URL="${DOCUMENTATION_URL}"
       LOGO="logo"
-      DEFAULT_HOSTNAME="elos"
+      DEFAULT_HOSTNAME="athens"
       EOF
       mkdir -p %{install-root}%{sysconfdir}/
       ln -sf ../usr/lib/os-release %{install-root}%{sysconfdir}/os-release

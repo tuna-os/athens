@@ -4,18 +4,18 @@ ProtectVersion=%A
 [Source]
 Type=url-file
 Path=https://%W.updates.elementaryos.org/%a
-MatchPattern=elementary_@v.efi
+MatchPattern=athens_@v.efi
 
 [Target]
 Type=regular-file
 Path=/EFI/Linux
 PathRelativeTo=boot
-MatchPattern=elementary_@v_%a+@l-@d.efi \
-             elementary_@v_%a+@l.efi \
-             elementary_@v_%a.efi \
-             elementary_@v+@l-@d.efi \
-             elementary_@v+@l.efi \
-             elementary_@v.efi
+MatchPattern=athens_@v_%a+@l-@d.efi \
+             athens_@v_%a+@l.efi \
+             athens_@v_%a.efi \
+             athens_@v+@l-@d.efi \
+             athens_@v+@l.efi \
+             athens_@v.efi
 # MatchPartitionType=uki
 Mode=0600
 TriesLeft=3

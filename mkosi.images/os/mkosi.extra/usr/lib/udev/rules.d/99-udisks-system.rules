@@ -5,5 +5,5 @@ SUBSYSTEM=="block", KERNEL=="loop*", ENV{UDISKS_IGNORE}="1"
 SUBSYSTEM=="block", KERNEL=="dm-*", ENV{DM_NAME}=="loop*", ENV{UDISKS_IGNORE}="1"
 
 # Hide default system partitions
-SUBSYSTEM=="block", ENV{ID_FS_LABEL}=="elementary_*", ENV{UDISKS_IGNORE}="1"
-SUBSYSTEM=="block", ENV{ID_PART_ENTRY_NAME}=="elementary_*", ENV{UDISKS_IGNORE}="1"
+SUBSYSTEM=="block", ENV{ID_FS_LABEL}=="athens_*", ENV{UDISKS_IGNORE}="1"
+SUBSYSTEM=="block", ENV{ID_PART_ENTRY_NAME}=="athens_*", ENV{UDISKS_IGNORE}="1"

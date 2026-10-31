@@ -4,12 +4,12 @@ ProtectVersion=%A
 [Source]
 Type=url-file
 Path=https://%W.updates.elementaryos.org/%a
-MatchPattern=elementary_@v.usr-%a-verity.@u.raw.zst
+MatchPattern=athens_@v.usr-%a-verity.@u.raw.zst
 
 [Target]
 Type=partition
 Path=auto
-MatchPattern=elementary_@v_verity
+MatchPattern=athens_@v_verity
 MatchPartitionType=usr-verity
 PartitionFlags=0
 ReadOnly=1
