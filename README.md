@@ -12,20 +12,54 @@ Requirements:
 - `zstd`
 - `systemd`
 
-Generate a local development signing key, then build the disk image:
+Generate a local development signing key, then build the Mkosi disk image:
 
 ```bash
 just genkey
 just build-image
 ```
 
-The image and partition artifacts are written to `mkosi.output/`. This recipe does not produce a qualified installer ISO or production release. Build a single BuildStream element in the pinned container with `just bst show desktop/gala.bst` or `just bst build stacks/athens.bst`.
+The Mkosi image and partition artifacts are written to `mkosi.output/`. This
+path remains the existing disk-image build; it does not produce an OCI image.
+It does not produce a qualified installer ISO or production release.
+
+Build the separate Athens bootc OCI image with BuildStream, then export its OCI
+layout to `buildstream-oci/`:
+
+```bash
+just build-oci
+just export-oci
+just load-oci
+just lint-oci
+```
+
+`just export-oci` checks out the already-built `oci/athens.bst` artifact and
+requires the `buildstream-oci/` destination not to exist. `just load-oci`
+imports that local OCI layout into Podman without a registry operation;
+`just lint-oci` runs `bootc container lint` on the imported image.
+The target layers only Athens's Pantheon/codecs content over the GNOME OS OCI
+base runtime and sets the `containers.bootc` image label. It does not produce a
+disk image or push to a registry.
+
+BuildStream elements can also be inspected or built directly inside the pinned
+container with `just bst show oci/athens.bst` or
+`just bst build oci/athens.bst`.
 
 ## Validation and status
 
-Pull requests run YAML/action lint, structural BuildStream lint, product-contract tests, and BuildStream graph validation for `x86_64` and `aarch64`. CI validates the graph; it does not compile the full image or prove boot/install behavior.
+Pull requests run YAML/action lint, structural BuildStream lint,
+product-contract tests, and read-only BuildStream graph validation for
+`x86_64` and `aarch64`. CI validates the graph; it does not compile either full
+image or prove boot/install/deployment behavior. The OCI bootc path is
+experimental and local-only; the local lint recipe has not been run, nor has
+the image been tested through bootc installation/update flows.
 
-Release publication, Athens update feeds, and production signing are not configured. The inherited Elementary systemd-sysupdate sources and signing key are intentionally excluded from the active image until Athens has an approved update endpoint and trust contract. Do not distribute generated images as production releases.
+Release publication, Athens update feeds, and production signing are not
+configured. The inherited Elementary systemd-sysupdate sources and signing key
+are intentionally excluded from the active Mkosi image until Athens has an
+approved update endpoint and trust contract. Do not distribute generated
+images as production releases.
+
 
 ## Acknowledgments
 
