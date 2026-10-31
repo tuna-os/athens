@@ -1,0 +1,69 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches: [bst]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: >-
+    ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Contract tests and workflow lint
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Check image contracts
+        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
+
+      - name: Install yamllint
+        run: python3 -m pip install --disable-pip-version-check yamllint==1.37.1
+
+      - name: Lint YAML
+        run: yamllint -d relaxed .
+
+      - name: Lint GitHub Actions workflows
+        uses: docker://rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667
+        with:
+          args: -color
+
+  lint-buildstream:
+    name: BuildStream structural lint
+    uses: tuna-os/bst-ci/.github/workflows/lint-bst.yml@3fdfd925dd5b60c0734c56541d5d5181457c11aa
+    with:
+      elements_roots: elements
+      strict: false
+
+  validate-buildstream:
+    name: BuildStream graph (${{ matrix.arch }})
+    runs-on: ubuntu-24.04
+    container:
+      image: registry.gitlab.com/freedesktop-sdk/infrastructure/freedesktop-sdk-docker-images/bst2:64eb0b4930d57a92710822898fb73af6cc1ae35d
+      options: --privileged --device /dev/fuse
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86_64, aarch64]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Validate Athens and initrd graphs
+        env:
+          BST_CONFIG: ${{ github.workspace }}/buildstream-ci.conf
+        run: |
+          bst --no-interactive --config "$BST_CONFIG" \
+            --option arch "${{ matrix.arch }}" show --deps all stacks/athens.bst
+          bst --no-interactive --config "$BST_CONFIG" \
+            --option arch "${{ matrix.arch }}" show --deps all stacks/initrd.bst

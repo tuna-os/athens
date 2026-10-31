@@ -1,27 +1,20 @@
+export bst2_image := env("BST2_IMAGE", "registry.gitlab.com/freedesktop-sdk/infrastructure/freedesktop-sdk-docker-images/bst2:64eb0b4930d57a92710822898fb73af6cc1ae35d")
 default:
     #!/usr/bin/env bash
     set -xeuo pipefail
     just --choose
 
 
-do-release:
+build-image:
     #!/usr/bin/env bash
     set -euo pipefail
     MKOSI="$(command -v mkosi || echo "$HOME/.local/bin/mkosi")"
     sudo rm -rf mkosi.output/
     sudo "$MKOSI" build -ff
-    # just compress-repo   # see note below
     sudo chown -R "$(id -u):$(id -g)" mkosi.output
     sudo chmod -R u+rwX mkosi.output
 
 
-_get_arch:
-    @systemd-analyze architectures | awk '/native/ {print $1}'
-
-_get_timestamp:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    echo "$(cat ./mkosi.version)"
 
 genkey:
     # Like `mkosi genkey`, but with a fixed-length serial so every build's verity signature is the same size.
@@ -32,45 +25,20 @@ genkey:
 
 bst *ARGS:
     #!/usr/bin/env bash
-    set -xeuo pipefail
-    sudo "$(command -v mkosi || echo "$HOME/.local/bin/mkosi")" box -- bst {{ARGS}}
-    sudo chown -R 1000:1000 elements/
+    set -euo pipefail
+    mkdir -p "${HOME}/.cache/buildstream"
+    podman run --rm \
+        --privileged \
+        --device /dev/fuse \
+        --network=host \
+        -v "{{justfile_directory()}}:/src:rw" \
+        -v "${HOME}/.cache/buildstream:/root/.cache/buildstream:rw" \
+        -w /src \
+        "{{bst2_image}}" \
+        bash -c 'if [ -t 1 ]; then bst --colors "$@"; else bst --no-colors "$@"; fi' -- ${BST_FLAGS:-} {{ARGS}}
 
 clean:
-    just mkosi clean
-    sudo rm -r mkosi.tools/ mkosi.cache/ ~/.cache/mkosi/*
-
-compress-repo:
     #!/usr/bin/env bash
     set -euo pipefail
-    cd mkosi.output
-    shopt -s nullglob
-    split=(athens_*.usr-*.*.raw)
-    if [ ${#split[@]} -eq 0 ]; then
-        echo "Fatal: No split OS partition artifacts found to compress." >&2
-        exit 1
-    fi
-    drivers=(driver-*.raw)
-    files=("${split[@]}" "${drivers[@]}")
-    zstd -T0 --rm -f "${files[@]}"
-    ls -l "${files[@]/%/.zst}"
-
-checksum-repo:
-    #!/usr/bin/env bash
-    set -euo pipefail
-    cd mkosi.output
-    sha256sum athens_*.efi \
-        athens_*.usr-*.*.raw.zst \
-        > SHA256SUMS
-    cat SHA256SUMS
-
-checksum-ext:
-    #!/usr/bin/env bash
-    cd mkosi.output
-    mkdir ext
-    mv {ext,driver}-*.raw.zst ext/
-    mv *addon.efi ext/
-    cd ext/
-    sha256sum {ext,driver}-*.raw.zst > SHA256SUMS
-    sha256sum *addon.efi >> SHA256SUMS
-    cat SHA256SUMS
+    MKOSI="$(command -v mkosi || echo "$HOME/.local/bin/mkosi")"
+    sudo "$MKOSI" clean

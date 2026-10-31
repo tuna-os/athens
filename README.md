@@ -1,31 +1,31 @@
-<div align="center">
-  <h1>Athens</h1>
-  <p><strong>Athens is TunaOS's Pantheon-based BuildStream recipe.</strong></p>
-</div>
+# Athens
 
-Athens adapts the recipe and image build setup from [JumpyVi's `elementary-build-meta`](https://github.com/jumpyvi/elementary-build-meta). JumpyVi's project is the basis of this recipe; Athens is not an original implementation by TunaOS. The desktop and applications are built from upstream Elementary/Pantheon and Freedesktop components, whose names and licenses remain those of their respective projects. See [LICENSE](LICENSE) and the source references in `elements/`.
+Athens is TunaOS's Pantheon-based BuildStream recipe. Its initial recipe and image-build setup are adapted from [JumpyVi's `elementary-build-meta`](https://github.com/jumpyvi/elementary-build-meta); this is not an original TunaOS implementation. Upstream Elementary/Pantheon components retain their own names, licenses, and attribution. See [LICENSE](LICENSE) and the pinned source definitions under `elements/`.
 
 ## Build locally
 
-Runtime dependencies:
+Requirements:
 
-- podman
-- just
-- zstd
-- systemd
+- Podman
+- `just`
+- Mkosi meeting the minimum in `mkosi.conf`
+- `zstd`
+- `systemd`
 
-Generate local signing keys and build:
+Generate a local development signing key, then build the disk image:
 
 ```bash
 just genkey
-just do-release
+just build-image
 ```
 
-The full image build may take more than two hours and use around 90 GB of disk space. Build a single BuildStream element with `just bst build desktop/gala.bst`.
+The image and partition artifacts are written to `mkosi.output/`. This recipe does not produce a qualified installer ISO or production release. Build a single BuildStream element in the pinned container with `just bst show desktop/gala.bst` or `just bst build stacks/athens.bst`.
 
-## Project status
+## Validation and status
 
-The Athens recipe and image identity are being adapted for TunaOS. Release publishing, update feeds, signing credentials, and product qualification are not configured; do not enable release workflows or distribute images as production releases until those paths are reviewed.
+Pull requests run YAML/action lint, structural BuildStream lint, product-contract tests, and BuildStream graph validation for `x86_64` and `aarch64`. CI validates the graph; it does not compile the full image or prove boot/install behavior.
+
+Release publication, Athens update feeds, and production signing are not configured. The inherited Elementary systemd-sysupdate sources and signing key are intentionally excluded from the active image until Athens has an approved update endpoint and trust contract. Do not distribute generated images as production releases.
 
 ## Acknowledgments
 
