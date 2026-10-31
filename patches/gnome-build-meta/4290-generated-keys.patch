@@ -1,10 +1,7 @@
 diff --git a/project.conf b/project.conf
 --- a/project.conf
 +++ b/project.conf
-@@ -175,5 +175,21 @@
-       git-mirrors:
-         https://github.com/: "github:"
-         https://gitlab.com/GNOME/: "gnome:"
+@@ -178,1 +178,17 @@
          https://codeberg.org/: "codeberg:"
 +  generated:
 +    config:
@@ -22,7 +19,6 @@ diff --git a/project.conf b/project.conf
 +      - key_mode == 'custom':
 +          name: custom
 +          args: []
-   pypi:
 @@ -274,4 +290,9 @@
  - origin: local
    path: plugins
