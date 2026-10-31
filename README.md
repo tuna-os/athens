@@ -54,6 +54,11 @@ image or prove boot/install/deployment behavior. The OCI bootc path is
 experimental and local-only; the local lint recipe has not been run, nor has
 the image been tested through bootc installation/update flows.
 
+The GNOME OS junction's secure-boot key sources use its checked-in key-generation
+template in the default `snakeoil` mode. No signing key is committed or used for
+production signing; this does not establish a distributable secure-boot trust
+contract.
+
 Release publication, Athens update feeds, and production signing are not
 configured. The inherited Elementary systemd-sysupdate sources and signing key
 are intentionally excluded from the active Mkosi image until Athens has an
