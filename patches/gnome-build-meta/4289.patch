@@ -13,44 +13,6 @@ index c30927f20..2b09e4aa2 100644
    directory: boot-keys
  
  build-depends:
-diff --git a/elements/gnomeos/debug/layer.bst b/elements/gnomeos/debug/layer.bst
-index c5d33564e..b542ebaa4 100644
---- a/elements/gnomeos/debug/layer.bst
-+++ b/elements/gnomeos/debug/layer.bst
-@@ -10,10 +10,10 @@ build-depends:
-     location: '/sysroot-debug'
- 
- sources:
--- kind: local
--  path: files/boot-keys/SYSEXT.key
--- kind: local
--  path: files/boot-keys/SYSEXT.crt
-+- kind: generated
-+  path: SYSEXT.key
-+- kind: generated
-+  path: SYSEXT.crt
- 
- variables:
-   repart-seed: 0dc2e590-c162-4ed3-992f-75ddb3fdbb65
-diff --git a/elements/gnomeos/devel/layer.bst b/elements/gnomeos/devel/layer.bst
-index ca487f70e..9576c82f3 100644
---- a/elements/gnomeos/devel/layer.bst
-+++ b/elements/gnomeos/devel/layer.bst
-@@ -15,10 +15,10 @@ build-depends:
-     location: '/sysroot-devel'
- 
- sources:
--- kind: local
--  path: files/boot-keys/SYSEXT.key
--- kind: local
--  path: files/boot-keys/SYSEXT.crt
-+- kind: generated
-+  path: SYSEXT.key
-+- kind: generated
-+  path: SYSEXT.crt
- 
- variables:
-   sysroot-seed: df2427db-01ec-4c99-96b1-be3edb3cd9f6
 diff --git a/elements/gnomeos/fwupd-efi-signed.bst b/elements/gnomeos/fwupd-efi-signed.bst
 index 04d0b34b8..f19c8d7aa 100644
 --- a/elements/gnomeos/fwupd-efi-signed.bst
@@ -126,44 +88,6 @@ index d740dfeb8..1dc663e15 100644
 -  path: files/boot-keys/modules
 +- kind: generated
 +  path: modules
-diff --git a/elements/gnomeos/nvidia-modules/layer.bst b/elements/gnomeos/nvidia-modules/layer.bst
-index c460e95dc..b57145fbb 100644
---- a/elements/gnomeos/nvidia-modules/layer.bst
-+++ b/elements/gnomeos/nvidia-modules/layer.bst
-@@ -10,10 +10,10 @@ build-depends:
-     location: '/sysroot-nvidia-modules'
- 
- sources:
--- kind: local
--  path: files/boot-keys/SYSEXT.key
--- kind: local
--  path: files/boot-keys/SYSEXT.crt
-+- kind: generated
-+  path: SYSEXT.key
-+- kind: generated
-+  path: SYSEXT.crt
- 
- variables:
-   repart-seed: a19b0f25-42ac-4c92-8921-d8d4079ec140
-diff --git a/elements/gnomeos/nvidia-runtime/layer.bst b/elements/gnomeos/nvidia-runtime/layer.bst
-index b1d630d6d..93406141b 100644
---- a/elements/gnomeos/nvidia-runtime/layer.bst
-+++ b/elements/gnomeos/nvidia-runtime/layer.bst
-@@ -15,10 +15,10 @@ build-depends:
-     location: '/sysroot-nvidia-runtime'
- 
- sources:
--- kind: local
--  path: files/boot-keys/SYSEXT.key
--- kind: local
--  path: files/boot-keys/SYSEXT.crt
-+- kind: generated
-+  path: SYSEXT.key
-+- kind: generated
-+  path: SYSEXT.crt
- 
- variables:
-   sysroot-seed: df2427db-01ec-4c99-96b1-be3edb3cd9f6
 diff --git a/elements/gnomeos/public-keys.bst b/elements/gnomeos/public-keys.bst
 index 73c4a0388..de4751af1 100644
 --- a/elements/gnomeos/public-keys.bst
@@ -247,25 +171,6 @@ index c7f016498..c2f11dc35 100644
 +  path: fstab-tpm2-pcr-public.pem
 +- kind: generated
 +  path: fstab-tpm2-pcr-private.pem
-diff --git a/elements/gnomeos/snapd/layer.bst b/elements/gnomeos/snapd/layer.bst
-index b8f84071c..8cbf91d16 100644
---- a/elements/gnomeos/snapd/layer.bst
-+++ b/elements/gnomeos/snapd/layer.bst
-@@ -15,10 +15,10 @@ build-depends:
-     location: '/sysroot-snapd'
- 
- sources:
--- kind: local
--  path: files/boot-keys/SYSEXT.key
--- kind: local
--  path: files/boot-keys/SYSEXT.crt
-+- kind: generated
-+  path: SYSEXT.key
-+- kind: generated
-+  path: SYSEXT.crt
- 
- variables:
-   sysroot-seed: df2427db-01ec-4c99-96b1-be3edb3cd9f6
 diff --git a/project.conf b/project.conf
 index 4c05d39a9..06777ea3f 100644
 --- a/project.conf
@@ -288,38 +193,6 @@ index 4c05d39a9..06777ea3f 100644
  # Some overrides to the default sandbox execution environment
  #
  environment:
-@@ -137,6 +148,22 @@ sources:
-         https://github.com/: "github:"
-         https://gitlab.gnome.org/GNOME/: "gnome:"
-         https://codeberg.org/: "codeberg:"
-+  generated:
-+    config:
-+      template: files/boot-keys
-+      (?):
-+      - key_mode == 'snakeoil':
-+          name: snakeoil
-+          args: ['IMPORT_MODE=snakeoil']
-+      - key_mode == 'import':
-+          name: import
-+          args: ['IMPORT_MODE=import']
-+      - key_mode == 'local':
-+          name: local
-+          args: ['IMPORT_MODE=local']
-+      - key_mode == 'custom':
-+          name: custom
-+          args: []
- 
- split-rules:
-   devel:
-@@ -231,3 +258,8 @@ plugins:
-   elements:
-   - collect_initial_scripts
-   - cargo
-+
-+- origin: local
-+  path: source-plugins
-+  sources:
-+  - generated
 diff --git a/source-plugins/generated.py b/source-plugins/generated.py
 new file mode 100644
 index 000000000..cd3d4dcb6
