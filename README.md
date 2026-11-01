@@ -1,4 +1,11 @@
 # Athens
+![Athens wordmark](branding/athens/athens-wordmark.svg)
+
+The [Athens application icon](branding/athens/athens-logo.svg) and wallpaper
+are original TunaOS artwork, separate from Elementary OS branding. The desktop
+components and recipe basis retain their upstream names and attribution.
+
+![Athens desktop wallpaper preview](branding/athens/athens-wallpaper.png)
 
 Athens is TunaOS's Pantheon-based BuildStream recipe. Its initial recipe and image-build setup are adapted from [JumpyVi's `elementary-build-meta`](https://github.com/jumpyvi/elementary-build-meta); this is not an original TunaOS implementation. Upstream Elementary/Pantheon components retain their own names, licenses, and attribution. See [LICENSE](LICENSE) and the pinned source definitions under `elements/`.
 
