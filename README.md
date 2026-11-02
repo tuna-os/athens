@@ -57,9 +57,9 @@ container with `just bst show oci/athens.bst` or
 
 ## Validation and status
 
-Pull requests run YAML/action lint, structural BuildStream lint,
-product-contract tests, and read-only BuildStream graph validation for
-`x86_64` and `aarch64`. Graph checks alone do not qualify an image.
+Pull requests run YAML/action lint, structural BuildStream lint, and read-only
+BuildStream graph validation for `x86_64` and `aarch64`. Graph checks alone do
+not qualify an image; source-text contract assertions are not boot tests.
 
 For actual compilation and boot verification, dispatch the **Test** workflow
 with `build_image=true`, or **Build and boot Athens candidate**. This builds
@@ -96,12 +96,16 @@ local OCI image ID used for live media. Only x86_64 has an executable boot smoke
 aarch64 remains graph-only. No image is published to GHCR by this workflow.
 
 Local verification on 2026-11-02 loaded the complete OCI graph successfully in
-the pinned bst2 container and passed eight contract tests and workflow lint.
+the pinned bst2 container and passed Python/Bash syntax checks and workflow lint.
 An actual rootful Podman OCI-transport smoke also confirmed imports are untagged
 despite `ref.name`; the load recipe now explicitly tags the imported image ID.
 This is not compilation or boot evidence. No Athens image/ISO has yet completed
 the new installation and live-boot qualification; treat all outputs as unqualified
 until a complete candidate run and its serial evidence are available.
+Source-text/config-contract tests have been removed in favor of the executable
+installation/live-boot checks above; their old passing counts are not qualification.
+Shared dependency caches persist across runs; candidate workflows serialize
+cache writers across branches rather than racing rolling GHCR cache tags.
 
 The GNOME OS junction's secure-boot key sources use its checked-in key-generation
 template in the default `snakeoil` mode. No signing key is committed or used for
