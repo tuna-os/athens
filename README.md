@@ -125,6 +125,9 @@ independent, incompatible GLib and accessibility libraries. This also restores
 GNOME's transitive Sysprof development dependency rather than disabling
 profiling or version requirements. Direct Python/GI, libsoup and Wayland-protocol
 dependencies are declared where the pinned sources require them.
+The architecture option is forwarded explicitly to GNOME; a local `aarch64`
+graph smoke resolved the SDK's `binary-seed-aarch64.bst`, rather than silently
+using host-default x86_64 dependencies. This remains graph evidence, not ARM boot.
 
 AppStream's bootstrap metadata tooling keeps the SDK source pin; the full
 SVG-capable composer uses that same source with Pantheon Vala bindings. Vala

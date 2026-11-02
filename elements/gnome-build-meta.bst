@@ -9,6 +9,8 @@ sources:
   path: patches/gnome-build-meta
 
 config:
+  options:
+    arch: '%{arch}'
   overrides:
     # Keep the upstream SDK junction and its coherent GNOME library overrides.
     # Replacing SDK libraries with independent FD versions broke GLib/at-spi
