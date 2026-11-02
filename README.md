@@ -1,13 +1,13 @@
 # Athens
 ![Athens wordmark](branding/athens/athens-wordmark.svg)
 
-The [Athens application icon](branding/athens/athens-logo.svg) and wallpaper
-are original TunaOS artwork, separate from Elementary OS branding. The desktop
-components and recipe basis retain their upstream names and attribution.
+TunaOS created the [Athens application icon](branding/athens/athens-logo.svg)
+and wallpaper, separate from Elementary OS artwork. The desktop components
+and recipe basis retain their upstream names and attribution.
 
 ![Athens desktop wallpaper preview](branding/athens/athens-wallpaper.png)
 
-Athens is TunaOS's Pantheon-based BuildStream recipe. Its initial recipe and image-build setup are adapted from [JumpyVi's `elementary-build-meta`](https://github.com/jumpyvi/elementary-build-meta); this is not an original TunaOS implementation. Upstream Elementary/Pantheon components retain their own names, licenses, and attribution. See [LICENSE](LICENSE) and the pinned source definitions under `elements/`.
+Athens is TunaOS's Pantheon-based BuildStream recipe. TunaOS adapted the initial recipe and image-build setup from [JumpyVi's `elementary-build-meta`](https://github.com/jumpyvi/elementary-build-meta). This is not an original TunaOS implementation. Upstream Elementary/Pantheon components retain their own names, licenses, and attribution. See [LICENSE](LICENSE) and the pinned source definitions under `elements/`.
 
 ## Build locally
 
@@ -15,24 +15,24 @@ Requirements:
 
 - Podman
 - `just`
-- Mkosi meeting the minimum in `mkosi.conf`
+- Mkosi at or above the minimum in `mkosi.conf`
 - `zstd`
 - `systemd`
 
-Generate a local development signing key, then build the Mkosi disk image:
+Generate a local development key, then build the Mkosi disk image:
 
 ```bash
 just genkey
 just build-image
 ```
 
-The Mkosi image and partition artifacts are written to `mkosi.output/`. This
-path remains the existing disk-image build; it does not produce an OCI image
-or installer ISO. Incremental state in `mkosi.cache/` is retained between builds;
-use `just clean` only when deliberately discarding it. These are experimental
-development disk images, not production releases or system extensions.
+Mkosi writes the image and partition artifacts to `mkosi.output/`.
+This path produces images for disks, not OCI images or installer ISOs.
+It retains incremental state in `mkosi.cache/` between builds.
+Use `just clean` only to discard that state.
+These images are experiments, not production releases or system extensions.
 
-Build the separate Athens bootc OCI image with BuildStream, then export its OCI
+Build the Athens image for bootc with BuildStream, then export its OCI
 layout to `buildstream-oci/`:
 
 ```bash
@@ -42,39 +42,41 @@ just load-oci
 just lint-oci
 ```
 
-`just export-oci` checks out the already-built `oci/athens.bst` artifact and
-requires the `buildstream-oci/` destination not to exist. `just load-oci`
-imports that local OCI layout into **rootful** Podman without a registry operation;
-`just lint-oci` runs `bootc container lint` on that imported image.
-The target layers Athens's Pantheon/codecs content over the GNOME OS OCI
-base runtime, replaces the runtime identity with TunaOS Athens, selects LightDM
-and Athens wallpaper defaults, and sets the `containers.bootc` image label.
-It does not push to a registry.
-Pantheon includes upstream `elementary/session-settings`, which supplies the
-Wayland session descriptors and user units; the `pantheon-wayland` integration
-library alone does not provide a session that LightDM can launch.
-The pinned session provider's actual source fetch and BuildStream dependency
-resolution were also exercised locally; this does not assert it compiled.
+`just export-oci` checks out the completed `oci/athens.bst` artifact.
+The `buildstream-oci/` destination must not exist.
+`just load-oci` imports that local layout into **rootful** Podman without a registry operation.
+`just lint-oci` runs `bootc container lint` on the imported image.
 
-BuildStream elements can also be inspected or built directly inside the pinned
-container with `just bst show oci/athens.bst` or
-`just bst build oci/athens.bst`.
+The target adds Pantheon and codecs to the OCI base from GNOME OS.
+It sets the TunaOS Athens identity, LightDM and wallpaper defaults, and the `containers.bootc` image label.
+It does not push to a registry.
+
+Pantheon includes upstream `elementary/session-settings`, which supplies the
+Wayland session descriptors and user units.
+The `pantheon-wayland` integration library alone does not provide a session that LightDM can launch.
+Local checks fetched the pinned session provider and resolved its dependencies.
+Those checks do not prove that it compiles.
+
+Inspect or build elements inside the pinned container with
+`just bst show oci/athens.bst` or `just bst build oci/athens.bst`.
 
 ## Validation and status
 
-Pull requests run YAML/action lint, structural BuildStream lint, and read-only
-BuildStream graph validation for `x86_64` and `aarch64`. Graph checks alone do
-not qualify an image; source-text contract assertions are not boot tests.
+For pull requests, CI checks YAML, actions and BuildStream structure.
+They also validate the graph for `x86_64` and `aarch64` without a build.
+Graph checks alone do not qualify an image; source-text assertions are not boot tests.
 
-For actual compilation and boot verification, dispatch the **Test** workflow
-with `build_image=true`, or **Build and boot Athens candidate**. This builds
-`oci/athens.bst`, exports and lints the real local image, installs a disposable
-test-instrumented derivative with `bootc install to-disk`, and boots it under
-UEFI/QEMU. Guest assertions check Athens identity/artwork, Pantheon session files,
-and a stable running LightDM service. This is not proof of an interactive
-desktop login, update flow, secure boot, or installer usability.
+For compilation and boot checks, dispatch **Test** with `build_image=true`,
+or **Build and boot Athens candidate**.
+The workflow builds `oci/athens.bst`, exports and lints the local image,
+and installs a disposable derivative with test instrumentation through `bootc install to-disk`.
+It then boots that disk under UEFI/QEMU.
 
-The same candidate is then used to produce and UEFI-boot live ISO media:
+Guest assertions check the Athens identity and artwork, Pantheon session files,
+and LightDM service stability.
+They do not prove that desktop login, updates, secure boot, or the installer work for a user.
+
+The workflow uses the same candidate to produce and UEFI-boot live ISO media:
 
 ```bash
 # Additional tools: squashfs-tools, dosfstools, mtools, xorriso,
@@ -84,84 +86,93 @@ just smoke-iso     # athens-live-smoke/, powers off after guest assertions
 just smoke-oci     # bootc-smoke/, disposable installed disk + serial evidence
 ```
 
-The live producer uses the Tromsø systemd-boot/dmsquash-live architecture:
-a pinned Debian builder creates only the initramfs against the Athens kernel;
-the live desktop root is Athens, not Debian. The live account is `liveuser`
-with an empty password and automatic Pantheon login; use this only on disposable
-development media. SSH is not enabled by this path. The normal ISO stays running;
-qualification media explicitly adds `athens.smoke=1` and powers off after
-checking overlay-root live boot, Athens artwork, LightDM stability and a Gala
-process owned by the live user. This media has **no GUI installer**; bootc
-installation is tested separately, not disguised as live-installer coverage.
-The live smoke captures `desktop.png` through QEMU's monitor after Gala is
-running; inspect that artifact before making a visual branding claim.
+The live producer uses the Tromsø systemd-boot/dmsquash-live architecture.
+A pinned Debian builder creates only the initramfs against the Athens kernel.
+The live desktop root is Athens, not Debian.
+The live account is `liveuser`, with an empty password and automatic Pantheon login.
+Use this only on disposable development media.
+This path does not enable SSH.
+
+The normal ISO does not shut down automatically.
+Qualification media adds `athens.smoke=1`.
+It checks overlay-root boot, Athens artwork, LightDM stability and a Gala process owned by the live user, then shuts down.
+This media has **no GUI installer**.
+Other checks verify installation through bootc, not a live installer.
+
+After Gala starts, the live smoke captures `desktop.png` through QEMU's monitor.
+Inspect that artifact before a claim about visual identity.
 
 Both tools refuse existing output directories to preserve earlier evidence.
-CI uploads actual OCI/ISO artifacts only after their corresponding checks
-complete, plus build/serial logs on failures. `source.json` records the exact
-local OCI image ID used for live media. Only x86_64 has an executable boot smoke;
-aarch64 remains graph-only. No image is published to GHCR by this workflow.
+CI uploads OCI/ISO artifacts only after their corresponding checks complete.
+It also uploads build and serial logs on failures.
+`source.json` records the local image ID for the live media.
+Only x86_64 has an executable boot smoke; aarch64 remains graph-only.
+This workflow does not publish images to GHCR.
 
-Local verification on 2026-11-02 loaded the complete OCI graph successfully in
-the pinned bst2 container and passed Python/Bash syntax checks and workflow lint.
-An actual rootful Podman OCI-transport smoke also confirmed imports are untagged
-despite `ref.name`; the load recipe now explicitly tags the imported image ID.
-The identity and artwork elements were actually built and checked out locally;
-the exported `os-release`, wallpaper defaults, and artwork hashes were inspected.
-These limited smokes are not full OS compilation or boot evidence. No Athens
-image/ISO has yet completed installation and live-boot qualification.
-Source-text/config-contract tests have been removed in favor of the executable
-installation/live-boot checks above; their old passing counts are not qualification.
-Shared dependency caches persist across runs; candidate workflows serialize
-cache writers across branches rather than racing rolling GHCR cache tags.
-The CI cache quota is 60G, matching the other desktop projects. It bounds stale
-artifact history, not the space required by active builds or image exports.
+Local checks on 2026-11-02 loaded the complete OCI graph in the pinned bst2 container.
+Python/Bash syntax checks and workflow lint passed.
+A smoke with rootful Podman showed that OCI imports have no tag despite `ref.name`.
+The load recipe now tags the imported image ID.
 
-The first actual candidate run,
+Local builds exported the identity and artwork elements.
+Checks compared the exported `os-release`, wallpaper defaults and artwork hashes.
+These limited smokes are not full OS compilation or boot evidence.
+No Athens image/ISO has completed installation and live-boot qualification.
+Executable installation and live-boot checks replace source-text assertions; old test counts are not qualification.
+
+Caches retain dependencies across runs.
+Candidate workflows serialize writes across branches to avoid races on mutable GHCR tags.
+Source archives use separate snapshots for each run.
+Jobs restore these by recipe and architecture.
+Explicit saves run even after build failures, so later jobs can reuse the new sources.
+
+The CI cache quota is 60G, as in the other desktop projects.
+It limits stale artifacts, not active builds or image exports.
+
+The first candidate run,
 [41391122198](https://github.com/tuna-os/athens/actions/runs/41391122198),
-passed both architecture graph checks, workflow lint, planning and its core
-build (199 cached artifacts pulled, one built). Dependency chunks then exposed
-real recipe failures and a live-cache archive race; no OCI/ISO was qualified.
-The graph now reuses GNOME's pinned SDK junctions instead of substituting
-independent, incompatible GLib and accessibility libraries. This also restores
-GNOME's transitive Sysprof development dependency rather than disabling
-profiling or version requirements. Direct Python/GI, libsoup and Wayland-protocol
-dependencies are declared where the pinned sources require them.
-The architecture option is forwarded explicitly to GNOME; a local `aarch64`
-graph smoke resolved the SDK's `binary-seed-aarch64.bst`, rather than silently
-using host-default x86_64 dependencies. This remains graph evidence, not ARM boot.
+passed graph checks for both architectures, workflow lint, the plan and its core build.
+That build pulled 199 cached artifacts and built one.
+Dependency chunks then failed on recipe errors and a live-cache archive race.
+That run did not qualify an OCI image or ISO.
 
-AppStream's bootstrap metadata tooling keeps the SDK source pin; the full
-SVG-capable composer uses that same source with Pantheon Vala bindings. Vala
-consumers use the full provider, not a minimal library pretending to be the
-composer. Flatpak-builder's compose requirement remains enabled.
+The graph now reuses GNOME's pinned SDK junctions, not incompatible independent GLib and accessibility libraries.
+This restores GNOME's transitive Sysprof dependency without loss of profile tools or version checks.
+Recipes declare the Python/GI, libsoup and Wayland-protocol dependencies that their pinned sources need.
 
-Budgeted CI builds now stop on genuine errors instead of continuing until a
-soft timeout could hide them. The shared CI revision stops residual builder
-containers before archiving CAS and uploads full build logs separately;
-archive mutation errors are not suppressed.
+The GNOME junction receives the explicit architecture option.
+A local check for `aarch64` resolved the SDK's `binary-seed-aarch64.bst`, not host-default x86_64 dependencies.
+This is graph evidence, not ARM boot evidence.
+
+AppStream's bootstrap tools keep the SDK source pin.
+The full composer uses that source with SVG support and Pantheon Vala bindings.
+Vala consumers use the full provider, not the minimal library.
+Flatpak-builder keeps its compose dependency.
+
+CI builds stop on genuine errors before a timeout.
+Before a CAS snapshot, shared CI stops residual builder containers.
+It uploads full build logs separately and fails on archive mutation errors.
 
 The next candidate run,
 [41446531247](https://github.com/tuna-os/athens/actions/runs/41446531247),
-reused 180 core artifacts, pulled 20 and built one; all chunk caches were saved.
-Its WebKit build failed because RECC's local REAPI executor could not `fork()`
-(`EAGAIN`), not because of a reported C++ source error. GNOME now uses its
-supported `cache-only` compiler mode: cache hits remain reusable, while misses
-compile in the existing build sandbox. Upstream excludes that execution-policy
-environment variable from artifact keys; a pinned BuildStream smoke confirmed
-the requested environment and the same WebKit key prefix (`c3db2faa`).
-This graph/environment check is not a successful WebKit compilation or OS boot.
+reused 180 core artifacts, pulled 20 and built one.
+It saved all chunk caches.
+WebKit failed because RECC's local REAPI executor could not `fork()` (`EAGAIN`), not because of a reported C++ source error.
 
-The GNOME OS junction's secure-boot key sources use its checked-in key-generation
-template in the default `snakeoil` mode. No signing key is committed or used for
-production signing; this does not establish a distributable secure-boot trust
-contract.
+GNOME now uses its supported `cache-only` compiler mode.
+Cache hits remain reusable; misses compile in the existing build sandbox.
+Upstream excludes that execution-policy environment variable from artifact keys.
+A check with pinned BuildStream confirmed the requested environment and the unchanged key prefix for WebKit (`c3db2faa`).
+This does not prove that WebKit compiles or that the OS boots.
 
-Release publication, Athens update feeds, and production signing are not
-configured. The inherited Elementary systemd-sysupdate sources and signing key
-are intentionally excluded from the active Mkosi image until Athens has an
-approved update endpoint and trust contract. Do not distribute generated
-images as production releases.
+The GNOME OS junction uses its committed template to generate secure-boot keys in default `snakeoil` mode.
+The repository contains no private key for production use.
+These development keys do not establish production trust.
+
+Athens has no release publication, update feed or production signature configuration.
+The Mkosi image excludes the sources and key for systemd-sysupdate from Elementary.
+Athens needs an approved update endpoint and trust contract first.
+Do not distribute generated images as production releases.
 
 
 ## Acknowledgments

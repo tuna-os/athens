@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   dependencies:
-    uses: tuna-os/bst-ci/.github/workflows/multirunner-build.yml@95e71ae02d8863f7b8bf2b6fc381119932998e5c
+    uses: tuna-os/bst-ci/.github/workflows/multirunner-build.yml@564c18f070c85ff73d070eb9f3d4bd436d82efb8
     permissions:
       contents: read
       packages: write
@@ -61,11 +61,13 @@ jobs:
           squashfs-tools dosfstools mtools xorriso
 
       - name: Restore BuildStream sources
-        uses: actions/cache@v6
+        id: sources
+        uses: actions/cache/restore@v6
         with:
           path: ~/.cache/buildstream/sources
-          key: bst-sources-athens-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('elements/**/*.bst', 'project.conf', 'include/**', 'patches/**') }}
+          key: bst-sources-athens-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('elements/**/*.bst', 'project.conf', 'include/**', 'patches/**') }}-final-${{ github.run_id }}-${{ github.run_attempt }}
           restore-keys: |
+            bst-sources-athens-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('elements/**/*.bst', 'project.conf', 'include/**', 'patches/**') }}-
             bst-sources-athens-${{ runner.os }}-${{ runner.arch }}-
 
       - name: Restore dependency artifacts without staging compressed copies
@@ -95,6 +97,13 @@ jobs:
           mkdir -p logs
           just bst --log-file /src/logs/athens-build.log build oci/athens.bst
           just export-oci
+      - name: Save fetched sources even after a failed build
+        if: always() && steps.sources.outputs.cache-primary-key != '' && steps.sources.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v6
+        with:
+          path: ~/.cache/buildstream/sources
+          key: ${{ steps.sources.outputs.cache-primary-key }}
+
 
       - name: Load and lint the local candidate
         run: |
