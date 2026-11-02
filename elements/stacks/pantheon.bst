@@ -10,6 +10,8 @@ depends:
   - desktop/greeter.bst
   - desktop/notifications-server.bst
   - desktop/initial-setup.bst
+  # Provides the session .desktop/.session files LightDM actually launches.
+  - desktop/session-settings.bst
 
   # Panel
   - desktop/panel/panel-meta.bst

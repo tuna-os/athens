@@ -27,3 +27,5 @@ systemctl is-active lightdm.service
 test "$(systemctl show lightdm.service -p NRestarts --value)" = "$restarts"
 # Confirm a desktop session, not merely a running display-manager process.
 pgrep -u liveuser -x gala
+echo ATHENS_LIVE_SCREENSHOT_READY
+sleep 30

@@ -138,5 +138,6 @@ jobs:
             athens-live-smoke/build.log
             athens-live-smoke/serial.log
             athens-live-smoke/source.json
+            athens-live-smoke/desktop.png
           retention-days: 14
           if-no-files-found: warn

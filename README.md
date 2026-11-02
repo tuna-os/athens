@@ -50,6 +50,11 @@ The target layers Athens's Pantheon/codecs content over the GNOME OS OCI
 base runtime, replaces the runtime identity with TunaOS Athens, selects LightDM
 and Athens wallpaper defaults, and sets the `containers.bootc` image label.
 It does not push to a registry.
+Pantheon includes upstream `elementary/session-settings`, which supplies the
+Wayland session descriptors and user units; the `pantheon-wayland` integration
+library alone does not provide a session that LightDM can launch.
+The pinned session provider's actual source fetch and BuildStream dependency
+resolution were also exercised locally; this does not assert it compiled.
 
 BuildStream elements can also be inspected or built directly inside the pinned
 container with `just bst show oci/athens.bst` or
@@ -88,6 +93,8 @@ qualification media explicitly adds `athens.smoke=1` and powers off after
 checking overlay-root live boot, Athens artwork, LightDM stability and a Gala
 process owned by the live user. This media has **no GUI installer**; bootc
 installation is tested separately, not disguised as live-installer coverage.
+The live smoke captures `desktop.png` through QEMU's monitor after Gala is
+running; inspect that artifact before making a visual branding claim.
 
 Both tools refuse existing output directories to preserve earlier evidence.
 CI uploads actual OCI/ISO artifacts only after their corresponding checks

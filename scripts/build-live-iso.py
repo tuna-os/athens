@@ -9,8 +9,10 @@ import json
 import os
 from pathlib import Path
 import shutil
+import socket
 import subprocess
 import tempfile
+import threading
 
 
 def run(*command: str, **kwargs):
@@ -100,14 +102,57 @@ def main() -> None:
         if args.smoke:
             shutil.copyfile(variables, output / "OVMF_VARS.fd")
             acceleration = "kvm" if os.access("/dev/kvm", os.R_OK | os.W_OK) else "tcg"
+            ready = threading.Event()
             with (output / "serial.log").open("w") as log:
-                run("qemu-system-x86_64", "-machine", f"q35,accel={acceleration}", "-m", "4096", "-smp", "2",
+                process = subprocess.Popen([
+                    "qemu-system-x86_64", "-machine", f"q35,accel={acceleration}", "-m", "4096", "-smp", "2",
                     "-display", "none", "-serial", "stdio", "-monitor", "none", "-no-reboot", "-device", "virtio-vga",
+                    "-qmp", f"unix:{output / 'qmp.sock'},server=on,wait=off",
                     "-nic", "user,model=virtio-net-pci", "-drive", f"if=pflash,format=raw,readonly=on,file={firmware}",
                     "-drive", f"if=pflash,format=raw,file={output / 'OVMF_VARS.fd'}",
                     "-drive", f"if=none,id=live,format=raw,media=cdrom,readonly=on,file={iso}",
-                    "-device", "virtio-scsi-pci,id=scsi", "-device", "scsi-cd,drive=live", stdout=log,
-                    stderr=subprocess.STDOUT, timeout=900)
+                    "-device", "virtio-scsi-pci,id=scsi", "-device", "scsi-cd,drive=live",
+                ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+
+                def collect_serial():
+                    for line in process.stdout:
+                        log.write(line)
+                        log.flush()
+                        if "ATHENS_LIVE_SCREENSHOT_READY" in line:
+                            ready.set()
+                    ready.set()  # Early QEMU exit must fail promptly, not wait 15m.
+
+                reader = threading.Thread(target=collect_serial)
+                reader.start()
+                try:
+                    if not ready.wait(900):
+                        raise RuntimeError("live boot did not reach screenshot readiness within 900s")
+                    if "ATHENS_LIVE_SCREENSHOT_READY" not in (output / "serial.log").read_text(errors="replace"):
+                        raise RuntimeError("QEMU exited before the live desktop was ready")
+                    with socket.socket(socket.AF_UNIX) as monitor:
+                        monitor.settimeout(20)
+                        monitor.connect(str(output / "qmp.sock"))
+                        stream = monitor.makefile("rwb")
+                        json.loads(stream.readline())  # QMP greeting.
+                        for command in ({"execute": "qmp_capabilities"},
+                                        {"execute": "screendump", "arguments": {
+                                            "filename": str(output / "desktop.png"), "format": "png"}}):
+                            stream.write(json.dumps(command).encode() + b"\n")
+                            stream.flush()
+                            while True:
+                                response = json.loads(stream.readline())
+                                if "error" in response:
+                                    raise RuntimeError(f"QEMU screenshot failed: {response}")
+                                if "return" in response:
+                                    break
+                    process.wait(timeout=60)
+                    if process.returncode:
+                        raise subprocess.CalledProcessError(process.returncode, process.args)
+                finally:
+                    if process.poll() is None:
+                        process.kill()
+                    process.wait()
+                    reader.join()
             serial = (output / "serial.log").read_text(errors="replace")
             if "ATHENS_LIVE_SMOKE_OK" not in serial or "ATHENS_LIVE_SMOKE_FAILED" in serial:
                 raise RuntimeError(f"live guest assertions failed; inspect {output / 'serial.log'}")
