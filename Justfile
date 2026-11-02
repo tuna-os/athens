@@ -23,6 +23,26 @@ genkey:
     OPENSSL_CONF=/dev/null openssl req -new -x509 -newkey rsa:2048 -keyout mkosi.key -out mkosi.crt \
         -days 730 -subj "/CN=mkosi of root/" -nodes -set_serial "0x40$(openssl rand -hex 19)"
 
+build-oci:
+    just bst build oci/athens.bst
+
+
+export-oci:
+    # Export the already-built OCI layout outside mkosi.output/.
+    just bst artifact checkout oci/athens.bst --directory buildstream-oci
+
+load-oci:
+    # Import the local OCI layout into Podman's image store; no registry access.
+    podman pull oci:buildstream-oci
+
+
+lint-oci:
+    # Validate the imported image locally; this does not publish it.
+    podman run --rm --privileged --pull=never ghcr.io/tuna-os/athens:latest bootc container lint
+
+
+
+
 bst *ARGS:
     #!/usr/bin/env bash
     set -euo pipefail

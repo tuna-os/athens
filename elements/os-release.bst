@@ -32,7 +32,7 @@ config:
       SUPPORT_URL="${SUPPORT_URL}"
       BUG_REPORT_URL="${SUPPORT_URL}"
       DOCUMENTATION_URL="${DOCUMENTATION_URL}"
-      LOGO="logo"
+      LOGO="athens-logo"
       DEFAULT_HOSTNAME="athens"
       EOF
       mkdir -p %{install-root}%{sysconfdir}/

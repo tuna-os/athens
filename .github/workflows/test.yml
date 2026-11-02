@@ -59,7 +59,7 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Validate Athens and initrd graphs
+      - name: Validate Athens, initrd, and OCI graphs
         env:
           BST_CONFIG: ${{ github.workspace }}/buildstream-ci.conf
         run: |
@@ -67,3 +67,5 @@ jobs:
             --option arch "${{ matrix.arch }}" show --deps all stacks/athens.bst
           bst --no-interactive --config "$BST_CONFIG" \
             --option arch "${{ matrix.arch }}" show --deps all stacks/initrd.bst
+          bst --no-interactive --config "$BST_CONFIG" \
+            --option arch "${{ matrix.arch }}" show --deps all oci/athens.bst

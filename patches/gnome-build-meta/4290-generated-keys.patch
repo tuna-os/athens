@@ -1,0 +1,31 @@
+diff --git a/project.conf b/project.conf
+--- a/project.conf
++++ b/project.conf
+@@ -178,1 +178,17 @@
+         https://codeberg.org/: "codeberg:"
++  generated:
++    config:
++      template: files/boot-keys
++      (?):
++      - key_mode == 'snakeoil':
++          name: snakeoil
++          args: ['IMPORT_MODE=snakeoil']
++      - key_mode == 'import':
++          name: import
++          args: ['IMPORT_MODE=import']
++      - key_mode == 'local':
++          name: local
++          args: ['IMPORT_MODE=local']
++      - key_mode == 'custom':
++          name: custom
++          args: []
+@@ -274,4 +290,9 @@
+ - origin: local
+   path: plugins
+   elements:
+   - collect_initial_scripts
++
++- origin: local
++  path: source-plugins
++  sources:
++  - generated
