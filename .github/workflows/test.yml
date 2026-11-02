@@ -5,6 +5,11 @@ on:
   push:
     branches: [bst]
   workflow_dispatch:
+    inputs:
+      build_image:
+        description: Build the actual OCI candidate and run bootc install/UEFI smoke
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -16,15 +21,12 @@ concurrency:
 
 jobs:
   checks:
-    name: Contract tests and workflow lint
+    name: Workflow lint
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
           persist-credentials: false
-
-      - name: Check image contracts
-        run: python3 -m unittest discover -s tests -p 'test_*.py' -v
 
       - name: Install yamllint
         run: python3 -m pip install --disable-pip-version-check yamllint==1.37.1
@@ -37,9 +39,12 @@ jobs:
         with:
           args: -color
 
+      - name: Check native qualification admission logic
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+
   lint-buildstream:
     name: BuildStream structural lint
-    uses: tuna-os/bst-ci/.github/workflows/lint-bst.yml@3fdfd925dd5b60c0734c56541d5d5181457c11aa
+    uses: tuna-os/bst-ci/.github/workflows/lint-bst.yml@89c7d20d6e113533278158d7e5df64f663770e49
     with:
       elements_roots: elements
       strict: false
@@ -69,3 +74,10 @@ jobs:
             --option arch "${{ matrix.arch }}" show --deps all stacks/initrd.bst
           bst --no-interactive --config "$BST_CONFIG" \
             --option arch "${{ matrix.arch }}" show --deps all oci/athens.bst
+
+  build-image:
+    if: github.event_name == 'workflow_dispatch' && inputs.build_image
+    uses: ./.github/workflows/build-athens.yml
+    permissions:
+      contents: read
+      packages: write

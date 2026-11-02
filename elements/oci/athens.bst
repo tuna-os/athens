@@ -6,6 +6,7 @@ build-depends:
   - gnome-build-meta.bst:freedesktop-sdk.bst:components/fakecap.bst
   - gnome-build-meta.bst:freedesktop-sdk.bst:components/oci-builder.bst
   - freedesktop-sdk.bst:components/glib.bst
+  - freedesktop-sdk.bst:components/gtk3.bst
   - gnome-build-meta.bst:core-deps/dconf.bst
   - gnome-build-meta.bst:freedesktop-sdk.bst:vm/prepare-image.bst
   - oci/layers/athens-init-scripts.bst
@@ -15,6 +16,10 @@ build-depends:
   - filename: oci/layers/athens.bst
     config:
       location: /layer
+  # Replace GNOME OS identity after composition, without overlapping elements.
+  - filename: os-release.bst
+    config:
+      location: /identity
 
 environment:
   LD_PRELOAD: /usr/libexec/fakecap/fakecap.so
@@ -36,12 +41,6 @@ config:
     - |
       systemd-sysusers --root /layer
 
-    - |
-      glib-compile-schemas /layer/usr/share/glib-2.0/schemas
-
-    - |
-      dconf update /layer/etc/dconf/db
-
     # bootc images must not have both /etc and /usr/etc.
     - |
       if [ -d /layer/usr/etc ]; then
@@ -49,6 +48,19 @@ config:
         cp -a /layer/usr/etc/. /layer/etc/
         rm -rf /layer/usr/etc
       fi
+    # Compile only after all runtime providers and factory configuration have
+    # landed. These are defaults, not dconf locks or per-user reset commands.
+    - |
+      glib-compile-schemas --strict /layer/usr/share/glib-2.0/schemas
+      dconf update /layer/etc/dconf/db
+      gtk-update-icon-cache --force --ignore-theme-index /layer/usr/share/icons/hicolor
+
+
+    - |
+      cp /identity/usr/lib/os-release /layer/usr/lib/os-release
+      ln -sfn ../usr/lib/os-release /layer/etc/os-release
+      systemctl --root=/layer set-default graphical.target
+      systemctl --root=/layer enable --force lightdm.service
 
     - |
       cd "%{install-root}"

@@ -19,7 +19,7 @@ build-depends:
 depends:
 - freedesktop-sdk.bst:public-stacks/runtime-minimal.bst
 - freedesktop-sdk.bst:components/glib.bst
-- deps/appstream-minimal.bst
+- freedesktop-sdk.bst:components/appstream.bst
 - freedesktop-sdk.bst:components/flatpak.bst
 - freedesktop-sdk.bst:components/polkit-gobject.bst
 - deps/gtk-4.bst

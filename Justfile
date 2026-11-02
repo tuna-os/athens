@@ -9,8 +9,7 @@ build-image:
     #!/usr/bin/env bash
     set -euo pipefail
     MKOSI="$(command -v mkosi || echo "$HOME/.local/bin/mkosi")"
-    sudo rm -rf mkosi.output/
-    sudo "$MKOSI" build -ff
+    sudo "$MKOSI" build
     sudo chown -R "$(id -u):$(id -g)" mkosi.output
     sudo chmod -R u+rwX mkosi.output
 
@@ -32,13 +31,32 @@ export-oci:
     just bst artifact checkout oci/athens.bst --directory buildstream-oci
 
 load-oci:
-    # Import the local OCI layout into Podman's image store; no registry access.
-    podman pull oci:buildstream-oci
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # OCI transport imports are untagged even with ref.name annotations.
+    image_id=$(sudo podman pull --quiet oci:buildstream-oci)
+    sudo podman tag "$image_id" ghcr.io/tuna-os/athens:latest
 
 
 lint-oci:
     # Validate the imported image locally; this does not publish it.
-    podman run --rm --privileged --pull=never ghcr.io/tuna-os/athens:latest bootc container lint
+    sudo podman run --rm --privileged --pull=never ghcr.io/tuna-os/athens:latest bootc container lint
+
+smoke-oci:
+    # Install a test-instrumented local image to a disposable disk and boot it.
+    sudo python3 scripts/bootc-smoke.py ghcr.io/tuna-os/athens:latest
+
+build-iso:
+    # Produce ordinary live media; rootful local OCI image must already exist.
+    sudo python3 scripts/build-live-iso.py ghcr.io/tuna-os/athens:latest --source-commit "$(git rev-parse HEAD)"
+
+smoke-iso:
+    # Produce separate qualification media and verify live Pantheon under UEFI.
+    sudo python3 scripts/build-live-iso.py ghcr.io/tuna-os/athens:latest --source-commit "$(git rev-parse HEAD)" --output athens-live-smoke --smoke
+
+qualify-iso contract:
+    # Operator-assisted actual GTK GUI + LUKS boot; never a backend-only claim.
+    sudo python3 scripts/qualify-iso.py athens-live --contract "{{contract}}"
 
 
 

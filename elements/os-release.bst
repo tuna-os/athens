@@ -7,12 +7,12 @@ variables:
   strip-binaries: ""
 
 environment:
-  PRETTY_NAME: "Athens"
-  NAME: "Athens"
+  PRETTY_NAME: "TunaOS Athens (Experimental)"
+  NAME: "TunaOS Athens"
   CODENAME: "athens"
-  HOME_URL: "none"
-  DOCUMENTATION_URL: "none"
-  SUPPORT_URL: "none"
+  HOME_URL: "https://github.com/tuna-os/athens"
+  DOCUMENTATION_URL: "https://github.com/tuna-os/athens#readme"
+  SUPPORT_URL: "https://github.com/tuna-os/athens/issues"
   ID: "athens"
   VERSION: "athens.%{freedesktop-sdk-flatpak-branch}"
 

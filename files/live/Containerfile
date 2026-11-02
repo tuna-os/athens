@@ -1,0 +1,38 @@
+# Live-media construction follows TunaOS Tromsø's dmsquash-live design.
+# The OS itself is always the local Athens candidate, never a Debian desktop.
+ARG BASE_IMAGE=ghcr.io/tuna-os/athens:latest
+FROM ${BASE_IMAGE} AS athens
+FROM debian:sid@sha256:46e441d513e81eb6c04119061b4abe68a5bae6fa55fd42bf39147e7d2a548bf5 AS initramfs
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends dracut dmsetup && rm -rf /var/lib/apt/lists/*
+COPY --from=athens /usr/lib/modules /usr/lib/modules
+RUN set -eu; kernel=$(find /usr/lib/modules -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -V | tail -1); \
+    test -n "$kernel"; DRACUT_NO_XATTR=1 dracut --force --zstd --reproducible --no-hostonly \
+    --add dmsquash-live --add-drivers 'squashfs overlay loop iso9660 sr_mod cdrom sd_mod virtio_scsi virtio_blk virtio_pci virtio_gpu xhci-pci usb-storage ext4 vfat' \
+    /tmp/initramfs.img "$kernel"
+FROM ${BASE_IMAGE}
+COPY --from=initramfs /tmp/initramfs.img /tmp/athens-live-initramfs.img
+COPY smoke.sh /usr/libexec/athens-live-smoke
+COPY smoke.service /usr/lib/systemd/system/athens-live-smoke.service
+COPY configure-installer.sh /usr/libexec/athens-configure-installer
+COPY gui-driver.py /usr/libexec/athens-gui-driver
+RUN /usr/libexec/athens-configure-installer && rm /usr/libexec/athens-configure-installer
+COPY --from=payload / /usr/lib/tunaos/payload/
+COPY --from=media /media-input.json /etc/bootc-installer/media-input.json
+COPY --from=media /automation.pub /tmp/athens-automation.pub
+RUN set -eu; kernel=$(find /usr/lib/modules -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -V | tail -1); \
+    mv /tmp/athens-live-initramfs.img "/usr/lib/modules/$kernel/initramfs-live.img"; \
+    useradd --create-home --user-group --shell /bin/bash liveuser; passwd --delete liveuser; \
+    mkdir -p /etc/sudoers.d; \
+    printf 'liveuser ALL=(root) NOPASSWD: /usr/bin/tee /dev/ttyS0\n' > /etc/sudoers.d/athens-live-state; \
+    chmod 0440 /etc/sudoers.d/athens-live-state; \
+    mkdir -p /etc/lightdm/lightdm.conf.d; \
+    printf '[Seat:*]\nautologin-user=liveuser\nautologin-user-timeout=0\nuser-session=pantheon-wayland\n' > /etc/lightdm/lightdm.conf.d/90-athens-live.conf; \
+    chmod 0755 /usr/libexec/athens-live-smoke; \
+    if test -s /tmp/athens-automation.pub; then \
+        install -d -m700 -o liveuser -g liveuser /home/liveuser/.ssh; \
+        install -m600 -o liveuser -g liveuser /tmp/athens-automation.pub /home/liveuser/.ssh/authorized_keys; \
+        systemctl enable sshd.service; \
+    fi; \
+    rm /tmp/athens-automation.pub; \
+    systemctl enable athens-live-smoke.service; \
+    systemctl set-default graphical.target

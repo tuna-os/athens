@@ -1,0 +1,107 @@
+# DERIVED, not calibrated: these are strict qualification expectations, not
+# claims that an Athens image has already produced these screens. Capture at
+# 1920x1080. Any geometry adjustment requires a real candidate frame and review.
+schema_version: 1
+crash_text: &crash ["kernel panic", "emergency mode", "failed to start", "installation failed"]
+checkpoints:
+  - id: live-desktop
+    phase: live
+    frames: [live-desktop]
+    required: true
+    keywords: ["Applications"]
+    forbid: *crash
+    regions:
+      - id: wallpaper
+        box: [0.05, 0.1, 0.9, 0.8]
+        artwork:
+          asset: branding/athens/athens-wallpaper.png
+          asset_box: [0.05, 0.1, 0.9, 0.8]
+          max_distance: 2
+  - id: installer-welcome
+    phase: live
+    frames: [installer-welcome]
+    required: true
+    match: all
+    keywords: ["Athens", "Welcome"]
+    forbid: *crash
+    distinct_from: [live-desktop]
+  - id: installer-encryption
+    phase: live
+    frames: [installer-encryption]
+    required: true
+    match: all
+    keywords: ["Disk encryption", "Passphrase"]
+    forbid: *crash
+    distinct_from: [installer-welcome]
+  - id: installer-summary
+    phase: live
+    frames: [installer-summary]
+    required: true
+    match: all
+    keywords: ["Confirm installation", "Athens", "passphrase"]
+    forbid: *crash
+    distinct_from: [installer-encryption]
+  - id: installer-done
+    phase: live
+    frames: [installer-done]
+    required: true
+    match: all
+    keywords: ["Athens", "installed"]
+    forbid: *crash
+    distinct_from: [installer-summary]
+  - id: luks-before-secret
+    phase: installed
+    frames: [luks-before-secret]
+    required: true
+    keywords: ["passphrase", "password", "unlock"]
+    forbid: *crash
+    distinct_from: [installer-done]
+    regions:
+      - id: watermark
+        # Spinner's watermark position is derived from its theme, not measured.
+        box: [0.4666667, 0.8518519, 0.0666666, 0.1185185]
+        artwork:
+          asset: branding/athens/athens-boot-logo.png
+          background: '#000000'
+          max_distance: 2
+  - id: installed-greeter
+    phase: installed
+    frames: [installed-greeter]
+    required: true
+    keywords: ["Password", "Log In", "Sign In"]
+    forbid: *crash
+    distinct_from: [luks-before-secret]
+  - id: installed-desktop
+    phase: installed
+    frames: [installed-desktop]
+    required: true
+    keywords: ["Applications"]
+    forbid: ["kernel panic", "emergency mode", "unlock", "passphrase"]
+    distinct_from: [installed-greeter]
+    regions:
+      - id: wallpaper
+        box: [0.05, 0.1, 0.9, 0.8]
+        artwork:
+          asset: branding/athens/athens-wallpaper.png
+          asset_box: [0.05, 0.1, 0.9, 0.8]
+          max_distance: 2
+  - id: installed-about
+    phase: installed
+    frames: [installed-about]
+    required: true
+    match: all
+    keywords: ["TunaOS", "Athens"]
+    forbid: *crash
+    distinct_from: [installed-desktop]
+    regions:
+      - id: product-name
+        box: [0.15, 0.1, 0.7, 0.8]
+        match: all
+        keywords: ["TunaOS", "Athens"]
+      - id: logo
+        # DERIVED centered About logo; must fail until a real frame qualifies it.
+        box: [0.4666667, 0.2777778, 0.0666666, 0.1185185]
+        artwork:
+          asset: branding/athens/athens-logo.svg
+          background: '#fafafa'
+          max_distance: 2

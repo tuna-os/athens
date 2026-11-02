@@ -23,3 +23,13 @@ mkosi.rootpw
 .bst2
 .cache/
 **/__pycache__/
+buildstream-oci/
+bootc-smoke/
+athens-live/
+athens-live-smoke/
+logs/
+*.tar.zst
+athens-live-qualification/
+athens-luks-qualification/
+.visual-contract/
+visual-controls/
