@@ -11,6 +11,9 @@ sources:
 config:
   options:
     arch: '%{arch}'
+    # No separate compiler executor is configured. Keep compiler-cache lookups,
+    # but run misses in the existing sandbox instead of one REAPI sandbox/job.
+    recc: cache-only
   overrides:
     # Keep the upstream SDK junction and its coherent GNOME library overrides.
     # Replacing SDK libraries with independent FD versions broke GLib/at-spi

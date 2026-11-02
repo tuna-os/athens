@@ -141,6 +141,17 @@ soft timeout could hide them. The shared CI revision stops residual builder
 containers before archiving CAS and uploads full build logs separately;
 archive mutation errors are not suppressed.
 
+The next candidate run,
+[41446531247](https://github.com/tuna-os/athens/actions/runs/41446531247),
+reused 180 core artifacts, pulled 20 and built one; all chunk caches were saved.
+Its WebKit build failed because RECC's local REAPI executor could not `fork()`
+(`EAGAIN`), not because of a reported C++ source error. GNOME now uses its
+supported `cache-only` compiler mode: cache hits remain reusable, while misses
+compile in the existing build sandbox. Upstream excludes that execution-policy
+environment variable from artifact keys; a pinned BuildStream smoke confirmed
+the requested environment and the same WebKit key prefix (`c3db2faa`).
+This graph/environment check is not a successful WebKit compilation or OS boot.
+
 The GNOME OS junction's secure-boot key sources use its checked-in key-generation
 template in the default `snakeoil` mode. No signing key is committed or used for
 production signing; this does not establish a distributable secure-boot trust
