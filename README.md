@@ -106,13 +106,35 @@ Local verification on 2026-11-02 loaded the complete OCI graph successfully in
 the pinned bst2 container and passed Python/Bash syntax checks and workflow lint.
 An actual rootful Podman OCI-transport smoke also confirmed imports are untagged
 despite `ref.name`; the load recipe now explicitly tags the imported image ID.
-This is not compilation or boot evidence. No Athens image/ISO has yet completed
-the new installation and live-boot qualification; treat all outputs as unqualified
-until a complete candidate run and its serial evidence are available.
+The identity and artwork elements were actually built and checked out locally;
+the exported `os-release`, wallpaper defaults, and artwork hashes were inspected.
+These limited smokes are not full OS compilation or boot evidence. No Athens
+image/ISO has yet completed installation and live-boot qualification.
 Source-text/config-contract tests have been removed in favor of the executable
 installation/live-boot checks above; their old passing counts are not qualification.
 Shared dependency caches persist across runs; candidate workflows serialize
 cache writers across branches rather than racing rolling GHCR cache tags.
+
+The first actual candidate run,
+[41391122198](https://github.com/tuna-os/athens/actions/runs/41391122198),
+passed both architecture graph checks, workflow lint, planning and its core
+build (199 cached artifacts pulled, one built). Dependency chunks then exposed
+real recipe failures and a live-cache archive race; no OCI/ISO was qualified.
+The graph now reuses GNOME's pinned SDK junctions instead of substituting
+independent, incompatible GLib and accessibility libraries. This also restores
+GNOME's transitive Sysprof development dependency rather than disabling
+profiling or version requirements. Direct Python/GI, libsoup and Wayland-protocol
+dependencies are declared where the pinned sources require them.
+
+AppStream's bootstrap metadata tooling keeps the SDK source pin; the full
+SVG-capable composer uses that same source with Pantheon Vala bindings. Vala
+consumers use the full provider, not a minimal library pretending to be the
+composer. Flatpak-builder's compose requirement remains enabled.
+
+Budgeted CI builds now stop on genuine errors instead of continuing until a
+soft timeout could hide them. The shared CI revision stops residual builder
+containers before archiving CAS and uploads full build logs separately;
+archive mutation errors are not suppressed.
 
 The GNOME OS junction's secure-boot key sources use its checked-in key-generation
 template in the default `snakeoil` mode. No signing key is committed or used for

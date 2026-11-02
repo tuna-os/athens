@@ -10,7 +10,7 @@ build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst
 - freedesktop-sdk.bst:components/pkg-config.bst
 - freedesktop-sdk.bst:components/gettext.bst
-- deps/appstream-minimal.bst
+- freedesktop-sdk.bst:components/appstream.bst
 - freedesktop-sdk.bst:components/vala.bst
 
 depends:

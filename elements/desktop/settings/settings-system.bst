@@ -12,7 +12,7 @@ build-depends:
 - freedesktop-sdk.bst:components/gettext.bst
 - freedesktop-sdk.bst:components/vala.bst
 - freedesktop-sdk.bst:components/gobject-introspection.bst
-- deps/appstream-minimal.bst
+- freedesktop-sdk.bst:components/appstream.bst
 
 depends:
 - freedesktop-sdk.bst:components/fwupd.bst

@@ -41,7 +41,7 @@ jobs:
 
   lint-buildstream:
     name: BuildStream structural lint
-    uses: tuna-os/bst-ci/.github/workflows/lint-bst.yml@c525253f6d146e33e8d7dd80cfe5a9cd32741929
+    uses: tuna-os/bst-ci/.github/workflows/lint-bst.yml@200ad7cbc96ee0d456ed76a31211cb39681edde3
     with:
       elements_roots: elements
       strict: false

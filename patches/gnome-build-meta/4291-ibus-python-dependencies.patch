@@ -1,0 +1,45 @@
+From: Tuna OS developers
+Subject: [PATCH] gnomeos-deps: provide Python and GI for IBus engine setup
+
+ibus-hangul 1.5.5 and ibus-libpinyin 1.16.5 call AM_PATH_PYTHON
+while configuring and install Python-based preferences applications.
+The minimal runtime and ibus-daemon filter do not supply Python or
+PyGObject. Keep these dependencies at runtime as well as build time:
+libpinyin also imports gi.repository.IBus in its configure feature probe,
+and both preferences applications use GTK and IBus through GI.
+
+Select Python 3 explicitly for Hangul, as already done for libpinyin,
+rather than allowing its Python >= 2.5 check to select Python 2.
+
+The pinned upstream sources and their copyright notices are unchanged.
+
+---
+diff --git a/elements/gnomeos-deps/ibus-hangul.bst b/elements/gnomeos-deps/ibus-hangul.bst
+--- a/elements/gnomeos-deps/ibus-hangul.bst
++++ b/elements/gnomeos-deps/ibus-hangul.bst
+@@ -12,5 +12,11 @@ build-depends:
+ 
+ depends:
+ - core-deps/ibus-daemon.bst
++- sdk/pygobject.bst
+ - gnomeos-deps/libhangul.bst
++- freedesktop-sdk.bst:components/python3.bst
+ - freedesktop-sdk.bst:public-stacks/runtime-minimal.bst
++
++variables:
++  conf-local: >-
++    --with-python=python3
+diff --git a/elements/gnomeos-deps/ibus-libpinyin.bst b/elements/gnomeos-deps/ibus-libpinyin.bst
+--- a/elements/gnomeos-deps/ibus-libpinyin.bst
++++ b/elements/gnomeos-deps/ibus-libpinyin.bst
+@@ -13,8 +13,10 @@ build-depends:
+ depends:
+ - sdk/libnotify.bst
+ - core-deps/ibus-daemon.bst
++- sdk/pygobject.bst
+ - gnomeos-deps/libpinyin.bst
++- freedesktop-sdk.bst:components/python3.bst
+ - freedesktop-sdk.bst:public-stacks/runtime-minimal.bst
+ 
+ variables:
+   conf-local: >-

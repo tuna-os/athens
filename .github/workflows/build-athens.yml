@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   dependencies:
-    uses: tuna-os/bst-ci/.github/workflows/multirunner-build.yml@c525253f6d146e33e8d7dd80cfe5a9cd32741929
+    uses: tuna-os/bst-ci/.github/workflows/multirunner-build.yml@200ad7cbc96ee0d456ed76a31211cb39681edde3
     permissions:
       contents: read
       packages: write
