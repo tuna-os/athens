@@ -114,6 +114,8 @@ Source-text/config-contract tests have been removed in favor of the executable
 installation/live-boot checks above; their old passing counts are not qualification.
 Shared dependency caches persist across runs; candidate workflows serialize
 cache writers across branches rather than racing rolling GHCR cache tags.
+The CI cache quota is 60G, matching the other desktop projects. It bounds stale
+artifact history, not the space required by active builds or image exports.
 
 The first actual candidate run,
 [41391122198](https://github.com/tuna-os/athens/actions/runs/41391122198),
