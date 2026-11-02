@@ -8,7 +8,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: athens-candidate-${{ github.ref }}
+  # Branch candidates share rolling GHCR caches; serialize all cache writers.
+  group: athens-candidate
   cancel-in-progress: false
 
 jobs:
