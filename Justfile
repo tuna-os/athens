@@ -31,8 +31,11 @@ export-oci:
     just bst artifact checkout oci/athens.bst --directory buildstream-oci
 
 load-oci:
-    # Import the local OCI layout into Podman's image store; no registry access.
-    sudo podman pull oci:buildstream-oci
+    #!/usr/bin/env bash
+    set -euo pipefail
+    # OCI transport imports are untagged even with ref.name annotations.
+    image_id=$(sudo podman pull --quiet oci:buildstream-oci)
+    sudo podman tag "$image_id" ghcr.io/tuna-os/athens:latest
 
 
 lint-oci:

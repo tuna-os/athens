@@ -75,7 +75,8 @@ class AthensImageContractTests(unittest.TestCase):
 
         self.assertIn("just bst build oci/athens.bst", justfile)
         self.assertIn("bst artifact checkout oci/athens.bst --directory buildstream-oci", justfile)
-        self.assertIn("sudo podman pull oci:buildstream-oci", justfile)
+        self.assertIn("sudo podman pull --quiet oci:buildstream-oci", justfile)
+        self.assertIn('sudo podman tag "$image_id" ghcr.io/tuna-os/athens:latest', justfile)
         self.assertIn("bootc container lint", justfile)
         self.assertNotIn("buildstream-oci", root_config["Output"]["OutputDirectory"])
         self.assertEqual(image_config["Output"]["Format"], "disk")

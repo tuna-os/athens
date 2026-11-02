@@ -97,6 +97,8 @@ aarch64 remains graph-only. No image is published to GHCR by this workflow.
 
 Local verification on 2026-11-02 loaded the complete OCI graph successfully in
 the pinned bst2 container and passed eight contract tests and workflow lint.
+An actual rootful Podman OCI-transport smoke also confirmed imports are untagged
+despite `ref.name`; the load recipe now explicitly tags the imported image ID.
 This is not compilation or boot evidence. No Athens image/ISO has yet completed
 the new installation and live-boot qualification; treat all outputs as unqualified
 until a complete candidate run and its serial evidence are available.
