@@ -48,11 +48,15 @@ smoke-oci:
 
 build-iso:
     # Produce ordinary live media; rootful local OCI image must already exist.
-    sudo python3 scripts/build-live-iso.py ghcr.io/tuna-os/athens:latest
+    sudo python3 scripts/build-live-iso.py ghcr.io/tuna-os/athens:latest --source-commit "$(git rev-parse HEAD)"
 
 smoke-iso:
     # Produce separate qualification media and verify live Pantheon under UEFI.
-    sudo python3 scripts/build-live-iso.py ghcr.io/tuna-os/athens:latest --output athens-live-smoke --smoke
+    sudo python3 scripts/build-live-iso.py ghcr.io/tuna-os/athens:latest --source-commit "$(git rev-parse HEAD)" --output athens-live-smoke --smoke
+
+qualify-iso contract:
+    # Operator-assisted actual GTK GUI + LUKS boot; never a backend-only claim.
+    sudo python3 scripts/qualify-iso.py athens-live --contract "{{contract}}"
 
 
 

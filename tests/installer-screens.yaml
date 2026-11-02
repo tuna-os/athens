@@ -1,0 +1,16 @@
+# Actual published GTK frontend, on Pantheon. No populated secret page may be
+# photographed. Later summary/done screenshots are separately mandatory in the
+# pipeline contract after the operator has left credential entry.
+screens:
+  - id: welcome
+    title: Welcome to TunaOS Athens
+    required: true
+    keywords: ["Welcome to TunaOS Athens"]
+  - id: disk
+    title: Installation destination
+    required: true
+    keywords: ["Where should", "Target disk", "Select target disk"]
+  - id: encryption
+    title: Disk encryption before secret entry
+    required: true
+    keywords: ["Disk encryption"]

@@ -39,9 +39,12 @@ jobs:
         with:
           args: -color
 
+      - name: Check native qualification admission logic
+        run: python3 -m unittest discover -s tests -p 'test_*.py'
+
   lint-buildstream:
     name: BuildStream structural lint
-    uses: tuna-os/bst-ci/.github/workflows/lint-bst.yml@200ad7cbc96ee0d456ed76a31211cb39681edde3
+    uses: tuna-os/bst-ci/.github/workflows/lint-bst.yml@89c7d20d6e113533278158d7e5df64f663770e49
     with:
       elements_roots: elements
       strict: false

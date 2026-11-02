@@ -16,6 +16,9 @@ config:
     recc: cache-only
   overrides:
     # Keep the upstream SDK junction and its coherent GNOME library overrides.
+    # The theme must be replaced before GNOME's initramfs is assembled too.
+    gnomeos-deps/plymouth-gnome-theme.bst: branding/plymouth.bst
+    oci/integration/os-release.bst: os-release.bst
     # Replacing SDK libraries with independent FD versions broke GLib/at-spi
     # minimum versions and dropped transitive sysprof development dependencies.
     freedesktop-sdk.bst:components/networkmanager.bst: gnome-build-meta.bst:core-deps/NetworkManager.bst

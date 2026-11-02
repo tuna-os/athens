@@ -1,0 +1,21 @@
+diff --git a/src/Cards/UserCard.vala b/src/Cards/UserCard.vala
+--- a/src/Cards/UserCard.vala
++++ b/src/Cards/UserCard.vala
+@@ -192,7 +192,7 @@
+             return path;
+         }
+ 
+-        return "/usr/share/backgrounds/elementaryos-default";
++        return "/usr/share/backgrounds/TunaOS/Athens/athens-wallpaper.png";
+     }
+ 
+     private void set_background_image () {
+@@ -222,7 +222,7 @@
+ 
+             background_picture.paintable = (Gdk.Texture.for_pixbuf (pixbuf));
+         } else {
+-            background_picture.set_filename ("/usr/share/backgrounds/elementaryos-default");
++            background_picture.set_filename ("/usr/share/backgrounds/TunaOS/Athens/athens-wallpaper.png");
+         }
+ 
+         var clamp = new Adw.Clamp () {

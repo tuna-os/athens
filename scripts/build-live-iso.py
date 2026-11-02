@@ -2,9 +2,10 @@
 """Build an x86_64 Athens live ISO from a local rootful Podman image.
 
 Uses the same systemd-boot + Debian-built dmsquash-live initramfs architecture
-as TunaOS Tromsø. No registry publication or installer is implied.
+as TunaOS Tromsø. The live-only GTK installer consumes a verified offline OCI.
 """
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -23,11 +24,13 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("image")
     parser.add_argument("--output", type=Path, default=Path("athens-live"))
+    parser.add_argument("--source-commit", required=True, help="Exact source commit used for this candidate; recorded, not inferred from a mutable image tag")
+    parser.add_argument("--automation-public-key", type=Path, help="Disposable qualification SSH key; enables live SSH only on this test ISO")
     parser.add_argument("--smoke", action="store_true", help="Boot ISO in QEMU and assert live Pantheon readiness; ISO shuts down after assertions")
     args = parser.parse_args()
     if os.geteuid() != 0 or os.uname().machine != "x86_64":
         parser.error("run as root on x86_64")
-    tools = ["podman", "mksquashfs", "mkfs.fat", "mmd", "mcopy", "xorriso"]
+    tools = ["podman", "skopeo", "mksquashfs", "mkfs.fat", "mmd", "mcopy", "xorriso"]
     if args.smoke:
         tools.append("qemu-system-x86_64")
     for tool in tools:
@@ -46,10 +49,46 @@ def main() -> None:
     output.mkdir()  # Never overwrite an earlier ISO or its evidence.
     live = f"localhost/athens-live:{os.getpid()}"
     root = Path(__file__).resolve().parents[1]
+    actual_commit = run("git", "-C", str(root), "rev-parse", "HEAD", capture_output=True, text=True).stdout.strip()
+    if args.source_commit != actual_commit:
+        parser.error("--source-commit must be the exact current checkout revision")
+    run("git", "-C", str(root), "diff", "--quiet", "HEAD", "--")
     mounted = False
     try:
         with (output / "build.log").open("w") as log:
+            payload = output / "payload"
+            run("skopeo", "copy", "--override-os", "linux", "--override-arch", "amd64",
+                "--dest-compress-format", "gzip", f"containers-storage:{source}",
+                f"oci:{payload}:payload", stdout=log, stderr=subprocess.STDOUT)
+            index = json.loads((payload / "index.json").read_text())
+            if len(index["manifests"]) != 1:
+                raise RuntimeError("installer payload must contain exactly one platform manifest")
+            manifest_digest = index["manifests"][0]["digest"]
+            def blob(digest):
+                path = payload / "blobs" / digest.replace(":", "/")
+                if "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+                    raise RuntimeError(f"payload digest mismatch: {digest}")
+                return path
+            manifest = json.loads(blob(manifest_digest).read_text())
+            config_digest = manifest["config"]["digest"]
+            config = json.loads(blob(config_digest).read_text())
+            if (config["os"], config["architecture"]) != ("linux", "amd64"):
+                raise RuntimeError("installer payload platform does not match live media")
+            media = output / "media"
+            media.mkdir()
+            public_key = args.automation_public_key.read_text().strip() if args.automation_public_key else ""
+            if public_key and (not public_key.startswith("ssh-ed25519 ") or "\n" in public_key):
+                raise RuntimeError("automation key must be one Ed25519 public-key line")
+            public_key = " ".join(public_key.split()[:2])
+            (media / "automation.pub").write_text(public_key + "\n" if public_key else "")
+            (media / "media-input.json").write_text(json.dumps({
+                "schemaVersion": 1, "kind": "athens-live", "image": "ghcr.io/tuna-os/athens:latest",
+                "platformManifestDigest": manifest_digest, "configDigest": config_digest,
+                "ociLayoutPath": "/usr/lib/tunaos/payload", "targetImgref": "ghcr.io/tuna-os/athens:latest",
+                "platform": "linux/amd64",
+            }, indent=2) + "\n")
             run("podman", "build", "--layers", "--build-arg", f"BASE_IMAGE={source}",
+                "--build-context", f"payload={payload}", "--build-context", f"media={media}",
                 "--security-opt", "label=disable", "--cap-add", "SYS_ADMIN", "-t", live,
                 str(root / "files/live"), stdout=log, stderr=subprocess.STDOUT)
             mount = Path(run("podman", "image", "mount", live, capture_output=True, text=True).stdout.strip())
@@ -58,6 +97,8 @@ def main() -> None:
             if len(kernels) != 1:
                 raise RuntimeError(f"expected exactly one kernel, found {kernels}")
             kernel = kernels[0]
+            shutil.copyfile(mount / "usr/share/tunaos/installer-flatpaks.tsv", output / "installer-flatpaks.tsv")
+            shutil.copyfile(mount / "usr/share/tunaos/installer-info.txt", output / "installer-info.txt")
             with tempfile.TemporaryDirectory(prefix="assembly-", dir=output) as temporary:
                 work = Path(temporary)
                 iso_root = work / "iso"
@@ -96,9 +137,17 @@ def main() -> None:
                     "-rockridge", "on", "-joliet", "on", "-map", str(iso_root), "/",
                     "-boot_image", "any", "platform_id=0xef", "-boot_image", "any", "efi_path=EFI/efi.img", "-commit",
                     stdout=log, stderr=subprocess.STDOUT)
+        with iso.open("rb") as stream:
+            iso_sha256 = hashlib.file_digest(stream, "sha256").hexdigest()
         (output / "source.json").write_text(json.dumps({"source_image": args.image, "source_image_id": metadata["Id"],
+            "source_commit": args.source_commit, "payload_manifest_digest": manifest_digest,
+            "payload_config_digest": config_digest, "iso_sha256": iso_sha256,
             "architecture": "x86_64", "qualification_smoke_iso": args.smoke,
-            "installer": False}, indent=2) + "\n")
+            "qualification_ssh": bool(args.automation_public_key),
+            "automation_public_key_sha256": hashlib.sha256(public_key.encode()).hexdigest() if public_key else None,
+            "installer": "org.tunaos.InstallerXfce", "installer_scope": "system", "installer_branch": "master",
+            "installer_commits": (output / "installer-flatpaks.tsv").read_text(),
+            "installer_info": (output / "installer-info.txt").read_text()}, indent=2) + "\n")
         if args.smoke:
             shutil.copyfile(variables, output / "OVMF_VARS.fd")
             acceleration = "kvm" if os.access("/dev/kvm", os.R_OK | os.W_OK) else "tcg"

@@ -13,11 +13,26 @@ FROM ${BASE_IMAGE}
 COPY --from=initramfs /tmp/initramfs.img /tmp/athens-live-initramfs.img
 COPY smoke.sh /usr/libexec/athens-live-smoke
 COPY smoke.service /usr/lib/systemd/system/athens-live-smoke.service
+COPY configure-installer.sh /usr/libexec/athens-configure-installer
+COPY gui-driver.py /usr/libexec/athens-gui-driver
+RUN /usr/libexec/athens-configure-installer && rm /usr/libexec/athens-configure-installer
+COPY --from=payload / /usr/lib/tunaos/payload/
+COPY --from=media /media-input.json /etc/bootc-installer/media-input.json
+COPY --from=media /automation.pub /tmp/athens-automation.pub
 RUN set -eu; kernel=$(find /usr/lib/modules -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort -V | tail -1); \
     mv /tmp/athens-live-initramfs.img "/usr/lib/modules/$kernel/initramfs-live.img"; \
-    useradd --create-home --shell /bin/bash liveuser; passwd --delete liveuser; \
+    useradd --create-home --user-group --shell /bin/bash liveuser; passwd --delete liveuser; \
+    mkdir -p /etc/sudoers.d; \
+    printf 'liveuser ALL=(root) NOPASSWD: /usr/bin/tee /dev/ttyS0\n' > /etc/sudoers.d/athens-live-state; \
+    chmod 0440 /etc/sudoers.d/athens-live-state; \
     mkdir -p /etc/lightdm/lightdm.conf.d; \
     printf '[Seat:*]\nautologin-user=liveuser\nautologin-user-timeout=0\nuser-session=pantheon-wayland\n' > /etc/lightdm/lightdm.conf.d/90-athens-live.conf; \
     chmod 0755 /usr/libexec/athens-live-smoke; \
+    if test -s /tmp/athens-automation.pub; then \
+        install -d -m700 -o liveuser -g liveuser /home/liveuser/.ssh; \
+        install -m600 -o liveuser -g liveuser /tmp/athens-automation.pub /home/liveuser/.ssh/authorized_keys; \
+        systemctl enable sshd.service; \
+    fi; \
+    rm /tmp/athens-automation.pub; \
     systemctl enable athens-live-smoke.service; \
     systemctl set-default graphical.target

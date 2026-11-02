@@ -29,3 +29,7 @@ athens-live/
 athens-live-smoke/
 logs/
 *.tar.zst
+athens-live-qualification/
+athens-luks-qualification/
+.visual-contract/
+visual-controls/
