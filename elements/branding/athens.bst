@@ -16,6 +16,14 @@ config:
   - install -Dm644 athens-wordmark.svg '%{install-root}%{datadir}/tunaos/branding/athens-wordmark.svg'
   - install -Dm644 athens-wallpaper.svg '%{install-root}%{datadir}/tunaos/branding/athens-wallpaper.svg'
   - install -Dm644 athens-wallpaper.png '%{install-root}%{datadir}/backgrounds/TunaOS/Athens/athens-wallpaper.png'
+  - |
+    mkdir -p '%{install-root}%{datadir}/glib-2.0/schemas'
+    cat >'%{install-root}%{datadir}/glib-2.0/schemas/99_athens.gschema.override' <<'EOF'
+    [org.gnome.desktop.background]
+    picture-uri='file:///usr/share/backgrounds/TunaOS/Athens/athens-wallpaper.png'
+    picture-uri-dark='file:///usr/share/backgrounds/TunaOS/Athens/athens-wallpaper.png'
+    picture-options='zoom'
+    EOF
   - '%{install-extra}'
 
 variables:

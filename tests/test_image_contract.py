@@ -75,12 +75,55 @@ class AthensImageContractTests(unittest.TestCase):
 
         self.assertIn("just bst build oci/athens.bst", justfile)
         self.assertIn("bst artifact checkout oci/athens.bst --directory buildstream-oci", justfile)
-        self.assertIn("podman pull oci:buildstream-oci", justfile)
+        self.assertIn("sudo podman pull oci:buildstream-oci", justfile)
         self.assertIn("bootc container lint", justfile)
         self.assertNotIn("buildstream-oci", root_config["Output"]["OutputDirectory"])
         self.assertEqual(image_config["Output"]["Format"], "disk")
         self.assertIn("root=dissect", image_config["Content"]["KernelCommandLine"])
         self.assertIn("mount.usr=dissect", image_config["Content"]["KernelCommandLine"])
+
+    def test_image_build_keeps_incremental_state(self) -> None:
+        justfile = (ROOT / "Justfile").read_text(encoding="utf-8")
+        self.assertNotIn('rm -rf mkosi.output', justfile)
+        self.assertNotIn('build -ff', justfile)
+        self.assertIn('sudo "$MKOSI" build', justfile)
+
+    def test_oci_runtime_identity_and_display_manager(self) -> None:
+        target = (ROOT / "elements/oci/athens.bst").read_text(encoding="utf-8")
+        lightdm = (ROOT / "elements/desktop/lightdm.bst").read_text(encoding="utf-8")
+        branding = (ROOT / "elements/branding/athens.bst").read_text(encoding="utf-8")
+        self.assertIn("location: /identity", target)
+        self.assertIn("cp /identity/usr/lib/os-release /layer/usr/lib/os-release", target)
+        self.assertIn("systemctl --root=/layer set-default graphical.target", target)
+        self.assertIn("systemctl --root=/layer enable --force lightdm.service", target)
+        self.assertIn("ln -sf ../lightdm.service", lightdm)
+        self.assertIn("[org.gnome.desktop.background]", branding)
+        self.assertIn("picture-uri='file:///usr/share/backgrounds/TunaOS/Athens/", branding)
+
+    def test_manual_ci_builds_and_boots_an_actual_output(self) -> None:
+        workflow = (ROOT / ".github/workflows/build-athens.yml").read_text(encoding="utf-8")
+        smoke = (ROOT / "scripts/bootc-smoke.py").read_text(encoding="utf-8")
+        self.assertIn("build oci/athens.bst", workflow)
+        self.assertIn("just smoke-oci", workflow)
+        self.assertIn('"bootc", "install", "to-disk"', smoke)
+        self.assertIn('"qemu-system-x86_64"', smoke)
+        self.assertIn("ATHENS_BOOT_SMOKE_OK", smoke)
+        self.assertIn("systemctl is-active lightdm.service", smoke)
+
+    def test_live_iso_uses_local_candidate_and_real_boot_assertions(self) -> None:
+        producer = (ROOT / "scripts/build-live-iso.py").read_text(encoding="utf-8")
+        container = (ROOT / "files/live/Containerfile").read_text(encoding="utf-8")
+        guest = (ROOT / "files/live/smoke.sh").read_text(encoding="utf-8")
+        service = (ROOT / "files/live/smoke.service").read_text(encoding="utf-8")
+        self.assertIn('source = metadata["Id"]', producer)
+        self.assertIn("root=live:CDLABEL=ATHENS_LIVE", producer)
+        self.assertIn('"mksquashfs"', producer)
+        self.assertIn('"xorriso"', producer)
+        self.assertIn("dmsquash-live", container)
+        self.assertIn("COPY --from=athens /usr/lib/modules", container)
+        self.assertIn("ConditionKernelCommandLine=athens.smoke=1", service)
+        self.assertIn("findmnt -n -t overlay /", guest)
+        self.assertIn("pgrep -u liveuser -x gala", guest)
 
 
 if __name__ == "__main__":

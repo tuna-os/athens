@@ -5,6 +5,11 @@ on:
   push:
     branches: [bst]
   workflow_dispatch:
+    inputs:
+      build_image:
+        description: Build the actual OCI candidate and run bootc install/UEFI smoke
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -39,7 +44,7 @@ jobs:
 
   lint-buildstream:
     name: BuildStream structural lint
-    uses: tuna-os/bst-ci/.github/workflows/lint-bst.yml@3fdfd925dd5b60c0734c56541d5d5181457c11aa
+    uses: tuna-os/bst-ci/.github/workflows/lint-bst.yml@c525253f6d146e33e8d7dd80cfe5a9cd32741929
     with:
       elements_roots: elements
       strict: false
@@ -69,3 +74,10 @@ jobs:
             --option arch "${{ matrix.arch }}" show --deps all stacks/initrd.bst
           bst --no-interactive --config "$BST_CONFIG" \
             --option arch "${{ matrix.arch }}" show --deps all oci/athens.bst
+
+  build-image:
+    if: github.event_name == 'workflow_dispatch' && inputs.build_image
+    uses: ./.github/workflows/build-athens.yml
+    permissions:
+      contents: read
+      packages: write

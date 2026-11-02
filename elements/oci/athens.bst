@@ -15,6 +15,10 @@ build-depends:
   - filename: oci/layers/athens.bst
     config:
       location: /layer
+  # Replace GNOME OS identity after composition, without overlapping elements.
+  - filename: os-release.bst
+    config:
+      location: /identity
 
 environment:
   LD_PRELOAD: /usr/libexec/fakecap/fakecap.so
@@ -49,6 +53,12 @@ config:
         cp -a /layer/usr/etc/. /layer/etc/
         rm -rf /layer/usr/etc
       fi
+
+    - |
+      cp /identity/usr/lib/os-release /layer/usr/lib/os-release
+      ln -sfn ../usr/lib/os-release /layer/etc/os-release
+      systemctl --root=/layer set-default graphical.target
+      systemctl --root=/layer enable --force lightdm.service
 
     - |
       cd "%{install-root}"

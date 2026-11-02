@@ -1,0 +1,141 @@
+name: Build and boot Athens candidate
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: athens-candidate-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  dependencies:
+    uses: tuna-os/bst-ci/.github/workflows/multirunner-build.yml@c525253f6d146e33e8d7dd80cfe5a9cd32741929
+    permissions:
+      contents: read
+      packages: write
+    with:
+      image_name: athens
+      bst_target: oci/athens.bst
+      num_chunks: '4'
+      core_split: '200'
+      core_budget_minutes: '200'
+      chunk_budget_minutes: '200'
+      # These jobs only warm caches. Final assembly must really finish below.
+      soft_core_budget: true
+      soft_chunk_budget: true
+
+  candidate:
+    needs: dependencies
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    permissions:
+      contents: read
+      packages: write
+    env:
+      BST_FLAGS: --no-interactive --config /src/buildstream-ci.conf
+      MATRIX_KEYS: ${{ needs.dependencies.outputs.matrix_keys }}
+      CACHE_KEYS: ${{ needs.dependencies.outputs.cache_keys }}
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Free disk space
+        uses: jlumbroso/free-disk-space@3f13feab2962a87273d379ebc36ea159527e6cc9
+        with:
+          tool-cache: true
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - uses: extractions/setup-just@53165ef7e734c5c07cb06b3c8e7b647c5aa16db3 # v4
+      - uses: oras-project/setup-oras@5e2f2482b30b0cb3e14e67f89a80c88c659a7c63 # v2
+
+      - name: Install boot qualification tools
+        run: >-
+          sudo apt-get update &&
+          sudo apt-get install -y qemu-system-x86 qemu-utils ovmf zstd
+          squashfs-tools dosfstools mtools xorriso
+
+      - name: Restore BuildStream sources
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/buildstream/sources
+          key: bst-sources-athens-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('elements/**/*.bst', 'project.conf', 'include/**', 'patches/**') }}
+          restore-keys: |
+            bst-sources-athens-${{ runner.os }}-${{ runner.arch }}-
+
+      - name: Restore dependency artifacts without staging compressed copies
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$GH_TOKEN" | oras login ghcr.io -u "$GITHUB_ACTOR" --password-stdin
+          mkdir -p "$HOME/.cache/buildstream"
+          base="ghcr.io/${GITHUB_REPOSITORY,,}/cache-athens"
+          restore() {
+            local ref="$1" digest
+            digest=$(oras manifest fetch "$ref" | jq -er '.layers[] | select(.mediaType == "application/vnd.buildstream.cas.tar.zst") | .digest') || return 1
+            test -n "$digest" || return 1
+            oras blob fetch --output - "${ref%:*}@${digest}" | zstd -d -c | tar -xf - -C "$HOME/.cache/buildstream"
+          }
+          restore "${base}-core:latest" || echo '::warning::Core cache unavailable; BuildStream will rebuild missing artifacts'
+          while IFS= read -r chunk; do
+            key=$(jq -r --arg chunk "$chunk" '.[$chunk] // empty' <<< "$CACHE_KEYS")
+            if [[ -n "$key" ]] && restore "${base}-${chunk}:${key}"; then
+              continue
+            fi
+            restore "${base}-${chunk}:latest" || echo "::warning::${chunk} cache unavailable; BuildStream will rebuild missing artifacts"
+          done < <(jq -r '.[]' <<< "$MATRIX_KEYS")
+
+      - name: Build actual Athens OCI output
+        run: |
+          mkdir -p logs
+          just bst --log-file /src/logs/athens-build.log build oci/athens.bst
+          just export-oci
+
+      - name: Load and lint the local candidate
+        run: |
+          just load-oci
+          just lint-oci
+
+      - name: Install candidate to disposable disk and boot UEFI
+        run: just smoke-oci
+
+      - name: Produce and boot Athens live ISO from the same local candidate
+        run: just smoke-iso
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: athens-live-smoke-${{ github.sha }}
+          path: |
+            athens-live-smoke/athens-live.iso
+            athens-live-smoke/source.json
+          retention-days: 3
+          if-no-files-found: error
+
+      - name: Archive qualified local OCI layout
+        run: tar -C buildstream-oci -cf - . | zstd -T0 -o athens-oci.tar.zst
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: athens-oci-${{ github.sha }}
+          path: athens-oci.tar.zst
+          retention-days: 3
+          if-no-files-found: error
+
+      - name: Upload build and boot evidence, including failures
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: athens-evidence-${{ github.run_id }}
+          path: |
+            logs/
+            bootc-smoke/install.log
+            bootc-smoke/serial.log
+            athens-live-smoke/build.log
+            athens-live-smoke/serial.log
+            athens-live-smoke/source.json
+          retention-days: 14
+          if-no-files-found: warn

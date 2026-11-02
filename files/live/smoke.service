@@ -1,0 +1,12 @@
+[Unit]
+Description=Athens live ISO qualification assertions
+ConditionKernelCommandLine=athens.smoke=1
+After=lightdm.service systemd-user-sessions.service
+Wants=lightdm.service
+
+[Service]
+Type=simple
+ExecStart=/usr/libexec/athens-live-smoke
+
+[Install]
+WantedBy=multi-user.target
