@@ -16,6 +16,8 @@ Requirements:
 - Podman
 - `just`
 - Mkosi meeting the minimum in `mkosi.conf`
+- OpenSSL (`just genkey` runs `openssl` on the host)
+- `sudo` access (`just build-image` and `just clean` run Mkosi as root)
 - `zstd`
 - `systemd`
 
@@ -29,6 +31,10 @@ just build-image
 The Mkosi image and partition artifacts are written to `mkosi.output/`. This
 path remains the existing disk-image build; it does not produce an OCI image.
 It does not produce a qualified installer ISO or production release.
+
+The disk image's root password is `root`, set by `RootPassword=` in
+`mkosi.images/os/mkosi.conf`. Use the image only for local testing, and do not
+boot it on an untrusted network.
 
 Build the separate Athens bootc OCI image with BuildStream, then export its OCI
 layout to `buildstream-oci/`:
