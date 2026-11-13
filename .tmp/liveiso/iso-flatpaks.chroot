@@ -1,8 +1,0 @@
-#!/bin/bash
-set -euo pipefail
-
-if [[ "${1:-}" != "final" ]]; then
-    exit 0
-fi
-
-flatpak preinstall -y --noninteractive --system

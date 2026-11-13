@@ -1,6 +1,8 @@
 from configparser import ConfigParser
 from pathlib import Path
 import re
+import shutil
+import subprocess
 import unittest
 
 
@@ -81,6 +83,30 @@ class AthensImageContractTests(unittest.TestCase):
         self.assertEqual(image_config["Output"]["Format"], "disk")
         self.assertIn("root=dissect", image_config["Content"]["KernelCommandLine"])
         self.assertIn("mount.usr=dissect", image_config["Content"]["KernelCommandLine"])
+
+    def test_every_tracked_mkosi_input_is_read_by_the_image_build(self) -> None:
+        # mkosi reads the root mkosi.* files and the subimages under
+        # mkosi.images/. Configuration kept anywhere else is never built, so it
+        # cannot be relied on to describe what Athens produces.
+        if shutil.which("git") is None or not (ROOT / ".git").exists():
+            self.skipTest("not a git checkout")
+
+        tracked = subprocess.run(
+            ["git", "ls-files", "-z"],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        ).stdout
+        orphaned = [
+            path
+            for path in tracked.split("\0")
+            if path
+            and any(part.startswith("mkosi.") for part in Path(path).parts)
+            and not Path(path).parts[0].startswith("mkosi.")
+        ]
+
+        self.assertEqual(orphaned, [])
 
 
 if __name__ == "__main__":
