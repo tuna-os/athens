@@ -47,6 +47,22 @@ class AthensImageContractTests(unittest.TestCase):
         self.assertFalse(list(update_dir.glob("*.transfer")))
         self.assertFalse(signing_key.exists())
 
+    def test_committed_image_configs_set_no_root_password(self) -> None:
+        # Mkosi also writes RootPassword= to /usr/lib/credstore, so a committed
+        # value becomes the root password of every image built from this tree.
+        os_config = ROOT / "mkosi.images/os/mkosi.conf"
+        configs = [ROOT / "mkosi.conf", *sorted((ROOT / "mkosi.images").glob("*/mkosi.conf"))]
+
+        self.assertIn(os_config, configs)
+        for path in configs:
+            config = read_mkosi_config(path)
+            for section in config.sections():
+                self.assertNotIn(
+                    "RootPassword",
+                    config[section],
+                    f"{path.relative_to(ROOT)} [{section}]",
+                )
+
     def test_bootc_oci_target_uses_athens_layer_and_gnomeos_parent(self) -> None:
         target = (ROOT / "elements/oci/athens.bst").read_text(encoding="utf-8")
         layer = (ROOT / "elements/oci/layers/athens.bst").read_text(encoding="utf-8")

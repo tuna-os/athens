@@ -30,6 +30,11 @@ The Mkosi image and partition artifacts are written to `mkosi.output/`. This
 path remains the existing disk-image build; it does not produce an OCI image.
 It does not produce a qualified installer ISO or production release.
 
+The committed configuration sets no root password. For a root login on a local
+test build, write one to `mkosi.images/os/mkosi.rootpw` (mode `0600`,
+git-ignored) before building; Mkosi reads it in place of `RootPassword=`. Keep
+it out of commits: Mkosi stores the password inside the image's `/usr`.
+
 Build the separate Athens bootc OCI image with BuildStream, then export its OCI
 layout to `buildstream-oci/`:
 
