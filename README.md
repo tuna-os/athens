@@ -67,6 +67,23 @@ image or prove boot/install/deployment behavior. The OCI bootc path is
 experimental and local-only; the local lint recipe has not been run, nor has
 the image been tested through bootc installation/update flows.
 
+Pull requests and pushes to `bst` also run `actions-security.yml`, which checks
+the workflows themselves:
+
+- The `lockfile` job runs `gh actions-lock --verify` (the
+  [`github/gh-actions-lock`](https://github.com/github/gh-actions-lock)
+  extension, version pinned in the job). It fails when
+  `.github/workflows/actions.lock` no longer matches the `uses:` lines in the
+  workflows, or when a locked pin no longer verifies upstream.
+- The `zizmor` job runs the zizmor workflow security linter and fails on any
+  finding.
+
+`actions.lock` is generated; do not edit it by hand. After adding a workflow
+or changing any `uses:` line (including a Dependabot action bump), install the
+extension once with `gh extension install github/gh-actions-lock`, run
+`gh actions-lock` from the repository root, and commit the updated lockfile in
+the same pull request.
+
 The GNOME OS junction's secure-boot key sources use its checked-in key-generation
 template in the default `snakeoil` mode. No signing key is committed or used for
 production signing; this does not establish a distributable secure-boot trust
