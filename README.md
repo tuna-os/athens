@@ -71,6 +71,18 @@ image or prove boot/install/deployment behavior. The OCI bootc path is
 experimental and local-only; the local lint recipe has not been run, nor has
 the image been tested through bootc installation/update flows.
 
+To run the contract tests and YAML lint locally (Python 3 standard library and
+`git`; yamllint 1.37.1 is the version `test.yml` installs):
+
+```bash
+python3 -m unittest discover -s tests -p 'test_*.py' -v
+python3 -m pip install yamllint==1.37.1
+yamllint -d relaxed .
+```
+
+Install yamllint in a virtual environment if your system Python refuses
+`pip install`.
+
 Pull requests and pushes to `bst` also run `actions-security.yml`, which checks
 the workflows themselves:
 
