@@ -1,4 +1,5 @@
-export bst2_image := env("BST2_IMAGE", "registry.gitlab.com/freedesktop-sdk/infrastructure/freedesktop-sdk-docker-images/bst2:64eb0b4930d57a92710822898fb73af6cc1ae35d")
+# Digest of the multi-arch index that the tag bst2:64eb0b4930d57a92710822898fb73af6cc1ae35d names.
+export bst2_image := env("BST2_IMAGE", "registry.gitlab.com/freedesktop-sdk/infrastructure/freedesktop-sdk-docker-images/bst2@sha256:2ca3b449b594e9284bd60f436a4efad1365116b7d3d7129fd08b7a4f459d3561")
 default:
     #!/usr/bin/env bash
     set -xeuo pipefail
