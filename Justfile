@@ -39,6 +39,7 @@ load-oci:
 lint-oci:
     # Validate the imported image locally; this does not publish it.
     podman run --rm --privileged --pull=never ghcr.io/tuna-os/athens:latest bootc container lint
+    podman run --rm -i --pull=never ghcr.io/tuna-os/athens:latest sh -s -- / < scripts/check-image-access.sh
 
 
 

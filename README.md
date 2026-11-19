@@ -32,9 +32,11 @@ The Mkosi image and partition artifacts are written to `mkosi.output/`. This
 path remains the existing disk-image build; it does not produce an OCI image.
 It does not produce a qualified installer ISO or production release.
 
-The disk image's root password is `root`, set by `RootPassword=` in
-`mkosi.images/os/mkosi.conf`. Use the image only for local testing, and do not
-boot it on an untrusted network.
+The committed configuration sets no root password. For a root login on a local
+test build, write a password to `mkosi.images/os/mkosi.rootpw` (mode `0600`,
+git-ignored) before building; Mkosi reads it in place of `RootPassword=`. Mkosi
+stores that password inside the image's `/usr`, so do not hand such an image to
+anyone else.
 
 Build the separate Athens bootc OCI image with BuildStream, then export its OCI
 layout to `buildstream-oci/`:
@@ -49,7 +51,9 @@ just lint-oci
 `just export-oci` checks out the already-built `oci/athens.bst` artifact and
 requires the `buildstream-oci/` destination not to exist. `just load-oci`
 imports that local OCI layout into Podman without a registry operation;
-`just lint-oci` runs `bootc container lint` on the imported image.
+`just lint-oci` runs `bootc container lint` on the imported image, then
+`scripts/check-image-access.sh`, which fails if the image has an account with an
+empty password, a stored root password, a `NOPASSWD` sudo rule or an autologin.
 The target layers only Athens's Pantheon/codecs content over the GNOME OS OCI
 base runtime and sets the `containers.bootc` image label. It does not produce a
 disk image or push to a registry.
@@ -77,6 +81,11 @@ the workflows themselves:
   workflows, or when a locked pin no longer verifies upstream.
 - The `zizmor` job runs the zizmor workflow security linter and fails on any
   finding.
+
+The contract tests include `tests/test_access_invariants.py`. It fails when a
+file either image build reads sets a root password, blanks a password, adds a
+`NOPASSWD` sudo rule or turns on an autologin. Access for a test build belongs
+in git-ignored local configuration, as under "Build locally".
 
 `actions.lock` is generated; do not edit it by hand. After adding a workflow
 or changing any `uses:` line (including a Dependabot action bump), install the
