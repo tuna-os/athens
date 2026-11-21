@@ -1,7 +1,7 @@
 #!/bin/sh
 # Fail when an image root carries a development access default: an account
-# that needs no password, a root password baked into the image, passwordless
-# sudo, or a login that happens by itself.
+# that needs no password, a password baked into the image, passwordless sudo,
+# or a login that happens by itself.
 #
 # Usage: check-image-access.sh [ROOT]    (ROOT defaults to /)
 set -eu
@@ -24,12 +24,20 @@ has() {
 for etc in etc usr/etc usr/share/factory/etc; do
     dir="$root/$etc"
 
-    if [ -f "$dir/shadow" ]; then
+    # An empty second field means no password is asked, in passwd as much as
+    # in shadow. "x" defers to shadow and "!" or "*" lock the account; anything
+    # else is a hash, and every machine made from the image would share it.
+    for db in passwd shadow; do
+        [ -f "$dir/$db" ] || continue
         while IFS=: read -r user hash _ || [ -n "$user" ]; do
             [ -n "$user" ] || continue
-            [ -n "$hash" ] || fail "/$etc/shadow: '$user' has an empty password"
-        done < "$dir/shadow"
-    fi
+            case "$hash" in
+                '') fail "/$etc/$db: '$user' has an empty password" ;;
+                x | '!'* | '*'*) ;;
+                *) fail "/$etc/$db: '$user' has a password stored in the image" ;;
+            esac
+        done < "$dir/$db"
+    done
 
     if has "$dir/group" '^nopasswdlogin:[^:]*:[^:]*:.'; then
         fail "/$etc/group: nopasswdlogin has members"
@@ -39,9 +47,13 @@ for etc in etc usr/etc usr/share/factory/etc; do
         if has "$file" 'NOPASSWD'; then
             fail "${file#"$root"}: NOPASSWD rule"
         fi
+        # "Defaults !authenticate" does for every rule what NOPASSWD does for one.
+        if has "$file" '![[:space:]]*authenticate'; then
+            fail "${file#"$root"}: sudo authentication turned off"
+        fi
     done
 
-    for file in "$dir/lightdm/lightdm.conf" "$dir"/lightdm/lightdm.conf.d/*; do
+    for file in "$dir/lightdm/lightdm.conf" "$dir"/lightdm/lightdm.conf.d/* "$dir"/xdg/lightdm/lightdm.conf.d/*; do
         if has "$file" '^[[:space:]]*autologin-user[[:space:]]*=[[:space:]]*[^[:space:]]'; then
             fail "${file#"$root"}: display manager autologin"
         fi
@@ -58,10 +70,14 @@ for file in "$root"/usr/share/lightdm/lightdm.conf.d/*; do
     fi
 done
 
-for file in "$root"/usr/lib/systemd/system/*getty*.d/* "$root"/etc/systemd/system/*getty*.d/*; do
-    if has "$file" '--autologin'; then
-        fail "${file#"$root"}: console autologin"
-    fi
+# A getty unit can be replaced whole as well as extended by a drop-in, and
+# agetty spells the option "-a" too.
+for dir in "$root/usr/lib/systemd/system" "$root/etc/systemd/system"; do
+    for file in "$dir"/*getty*.d/* "$dir"/*getty*.service; do
+        if has "$file" '--autologin|agetty.*[[:space:]]-a[[:space:]]'; then
+            fail "${file#"$root"}: console autologin"
+        fi
+    done
 done
 
 # systemd sets the root password from these credentials at boot, so one stored

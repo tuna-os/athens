@@ -26,10 +26,11 @@ FORBIDDEN = {
     "password set or blanked": re.compile(
         r"\bpasswd\s+(?:-d|--delete)\b|\bchpasswd\b|\busermod\b.*\s(?:-p|--password)\b|\bsed\b.*\bshadow\b"
     ),
-    "passwordless sudo": re.compile(r"\bNOPASSWD\b"),
+    "passwordless sudo": re.compile(r"\bNOPASSWD\b|!\s*authenticate\b"),
     "passwordless login group": re.compile(r"\bnopasswdlogin\b"),
     "autologin": re.compile(
         r"^\s*Autologin\s*=|autologin-user\s*=|AutomaticLogin(?:Enable)?\s*=|--autologin\b"
+        r"|\bagetty\b.*\s-a\s"
     ),
 }
 
@@ -69,11 +70,13 @@ class SourceAccessInvariantTests(unittest.TestCase):
             "usermod -p '' athens": "password set or blanked",
             "sed -i 's/^root:[^:]*:/root::/' /etc/shadow": "password set or blanked",
             "echo '%wheel ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/wheel": "passwordless sudo",
+            "Defaults !authenticate": "passwordless sudo",
             "m athens nopasswdlogin": "passwordless login group",
             "Autologin=yes": "autologin",
             "autologin-user=athens": "autologin",
             "AutomaticLoginEnable=True": "autologin",
             "ExecStart=-agetty --autologin root %I": "autologin",
+            "ExecStart=-/sbin/agetty -a root --noclear %I": "autologin",
         }
         for line, name in samples.items():
             with self.subTest(line=line):
@@ -97,11 +100,13 @@ class ImageAccessCheckTests(unittest.TestCase):
     def test_root_without_access_defaults_passes(self) -> None:
         result = self.run_check(
             {
-                "etc/shadow": "root:!*:19000::::::\nlightdm:!*:19000::::::\nathens:$y$j9T$salt$hash:19000::::::\n",
+                "etc/passwd": "root:x:0:0::/root:/bin/sh\nlightdm:*:990:990::/var/lib/lightdm:/usr/sbin/nologin\n",
+                "etc/shadow": "root:!*:19000::::::\nlightdm:!:19000::::::\ndaemon:*:19000::::::\nold:!$y$j9T$salt$hash:19000::::::\n",
                 "etc/group": "root:x:0:\nnopasswdlogin:x:990:\nwheel:x:10:athens\n",
-                "etc/sudoers": "# %wheel ALL=(ALL) NOPASSWD: ALL\n%wheel ALL=(ALL) ALL\n",
+                "etc/sudoers": "# %wheel ALL=(ALL) NOPASSWD: ALL\n# Defaults !authenticate\n%wheel ALL=(ALL) ALL\n",
                 "etc/lightdm/lightdm.conf": "[Seat:*]\n#autologin-user=\nautologin-user=\n",
                 "etc/gdm/custom.conf": "[daemon]\nAutomaticLoginEnable=False\n",
+                "usr/lib/systemd/system/getty@.service": "[Service]\nExecStart=-/sbin/agetty -o '-- \\\\u' --noreset --noclear - ${TERM}\n",
                 "usr/lib/credstore/firstboot.locale": "C.UTF-8\n",
             }
         )
@@ -113,9 +118,16 @@ class ImageAccessCheckTests(unittest.TestCase):
         cases = {
             "etc/shadow": ("root::19000::::::\n", "'root' has an empty password"),
             "usr/etc/shadow": ("athens::19000::::::", "'athens' has an empty password"),
+            "etc/passwd": ("athens::1000:1000::/home/athens:/bin/sh\n", "'athens' has an empty password"),
+            "usr/share/factory/etc/shadow": (
+                "daemon:*:19000::::::\nroot:$y$j9T$salt$hash:19000::::::\n",
+                "'root' has a password stored in the image",
+            ),
+            "usr/etc/passwd": ("athens:abJnggxhB/yWI:1000:1000::/home/athens:/bin/sh\n", "'athens' has a password stored in the image"),
             "etc/group": ("nopasswdlogin:x:990:athens\n", "nopasswdlogin has members"),
             "etc/sudoers.d/wheel": ("%wheel ALL=(ALL) NOPASSWD: ALL\n", "NOPASSWD rule"),
             "usr/share/factory/etc/sudoers": ("athens ALL=(ALL) NOPASSWD: ALL\n", "NOPASSWD rule"),
+            "usr/etc/sudoers.d/dev": ("Defaults:athens !authenticate\n", "sudo authentication turned off"),
             "etc/lightdm/lightdm.conf.d/50-live.conf": (
                 "[Seat:*]\nautologin-user=athens\n",
                 "display manager autologin",
@@ -124,12 +136,24 @@ class ImageAccessCheckTests(unittest.TestCase):
                 "[Seat:*]\nautologin-user = athens\n",
                 "display manager autologin",
             ),
+            "etc/xdg/lightdm/lightdm.conf.d/50-live.conf": (
+                "[Seat:*]\nautologin-user=athens\n",
+                "display manager autologin",
+            ),
             "etc/gdm/custom.conf": (
                 "[daemon]\nAutomaticLoginEnable=True\n",
                 "display manager autologin",
             ),
             "usr/lib/systemd/system/getty@tty1.service.d/autologin.conf": (
                 "[Service]\nExecStart=\nExecStart=-agetty --autologin root %I\n",
+                "console autologin",
+            ),
+            "etc/systemd/system/getty@tty1.service.d/override.conf": (
+                "[Service]\nExecStart=\nExecStart=-/sbin/agetty -a root --noclear %I\n",
+                "console autologin",
+            ),
+            "etc/systemd/system/getty@tty1.service": (
+                "[Service]\nExecStart=-/sbin/agetty --autologin root --noclear %I\n",
                 "console autologin",
             ),
             "usr/lib/credstore/passwd.hashed-password.root": (
