@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/settings-keyboard.git
   track: main
-  ref: 8.1.1-23-g3652f455d752e516835607fd5e001126e543d247
+  ref: 8.1.1-26-g77688e3161fcf859a55ea7eec7b8e13a525e307a
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

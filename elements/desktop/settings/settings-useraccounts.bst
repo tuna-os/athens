@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/settings-useraccounts.git
   track: main
-  ref: 8.0.1-100-g522873a5fd0627d595d65119d9d73eae6c68fbc4
+  ref: 8.0.1-102-gabd23276d1bde1f7a7d30137dfb6258fe92a2d39
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

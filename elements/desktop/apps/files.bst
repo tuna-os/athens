@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/files.git
   track: main
-  ref: 7.3.2-15-gbc6ad6149398f61473be278c23673c179994c878
+  ref: 7.3.3-34-g9cec2e77e87fd3f79af2d3d67bc1f83aaa89956c
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

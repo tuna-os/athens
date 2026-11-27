@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/dock.git
   track: main
-  ref: 8.3.3-21-ge945b4b37e440d9d6a57830f2d4d4712099b1dce
+  ref: 8.3.3-40-g5673a4426444204e7316966d6effac936131f399
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

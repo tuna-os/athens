@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/settings-bluetooth.git
   track: main
-  ref: 8.0.2-47-g191cf10cc81be6093a4abb25bf085524589c16d6
+  ref: 8.0.2-49-g7efa18b301aa9c8f27b0437aa9e8b714601c6856
 
 build-depends:
   - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/settings-network.git
   track: main
-  ref: 8.2.0-33-g737467fb79849b617859784bd85157894787a459
+  ref: 8.2.0-34-gdb01b23b98ee61a34861370e6c33f79f469d0bad
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

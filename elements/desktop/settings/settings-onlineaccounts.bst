@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/settings-onlineaccounts.git
   track: main
-  ref: 8.0.2-38-g87c36d853edd57aa76e050437532fa686debbc31
+  ref: 8.0.2-42-g2f370b8a0d916a34706fcf4b1887b4bddb52372e
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

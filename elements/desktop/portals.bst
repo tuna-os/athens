@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/portals.git
   track: main
-  ref: 8.2.0-32-g4303df133c813f24c9334882fa46c209a0fda5ec
+  ref: 8.2.0-53-g9d6fd99e69ebb37279d0395e2cc83e6a11f80f26
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

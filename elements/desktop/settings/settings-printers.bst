@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/settings-printers.git
   track: main
-  ref: 8.0.2-16-g7c1208ba37e7c7303e62b30dfabddaac57e5084d
+  ref: 8.0.2-18-g39ab29977cb06af4871a81be308d87b3e9d354a9
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

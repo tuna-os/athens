@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/stylesheet.git
   track: main
-  ref: 8.2.2-42-ga6e19988a11f3e70e728d4951ab29e080660b31c
+  ref: 8.2.2-46-g5955a2ce3992dfaf79742ed9025bb17335e893da
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

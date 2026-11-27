@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/terminal.git
   track: main
-  ref: 8.1.0-11-ga119bb253910b8451fd3b079629b323dc1af3687
+  ref: 8.1.0-15-gf76f862324b82e0fd47a574aac9da98b1403550f
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/settings-notifications.git
   track: main
-  ref: 8.0.1-13-gfff879ab694092664dfea144c36df639a5ff5881
+  ref: 8.0.1-16-g1eb5b306f519b5e76e60c84b693989a83688471f
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

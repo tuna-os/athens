@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/bluetooth-daemon.git
   track: main
-  ref: 1.1.0-79-ga457eca62cf4cef3592ef2489a45afe75c8abb80
+  ref: 1.1.0-84-g74c68bb2b443f624a26237c670adc76afd509a42
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

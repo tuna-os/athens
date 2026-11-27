@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/settings-sound.git
   track: main
-  ref: 8.0.3-24-g484ee80b3c79e5522bc54b13d378520243e2fbef
+  ref: 8.0.3-27-gebdde53965188df88952c58ca3fc4d04baa4b7bb
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

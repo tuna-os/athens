@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/monitor.git
   track: main
-  ref: 8.0.1-172-ga1cdf123f92cbbdcf3ca3d5409b92fafc66c0e11
+  ref: 8.0.1-179-g93b8c07df03a3180188cd092ccee83935e9b8f4f
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst
