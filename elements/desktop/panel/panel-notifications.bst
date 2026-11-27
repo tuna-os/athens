@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/panel-notifications
   track: main
-  ref: 7.1.1-149-g033715d6375f62a15cad3edc0829a312a1d78f9b
+  ref: 7.1.1-154-ga448f173dfed86478944d4a03002b6eff8c322e8
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

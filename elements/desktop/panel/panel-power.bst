@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/panel-power
   track: main
-  ref: 8.0.2-47-ge05723d8cba82b596a5efc259b4e0d15ad9a2bc4
+  ref: 8.0.2-60-g2c74fe9faa79297db70667fc77b3ad5adf00075e
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

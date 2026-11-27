@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/wingpanel.git
   track: main
-  ref: 8.0.4-49-ge737de88bc02ddc82a9f4d23f574cc3c04098c03
+  ref: 8.0.4-51-gf5f0f9de76219782f914902241b1205bad45f756
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

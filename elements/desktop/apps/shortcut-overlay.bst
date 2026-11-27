@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/shortcut-overlay.git
   track: main
-  ref: 8.1.0-73-g3e8b0d115147604e1cd8504f15f62aa9bb930ac8
+  ref: 8.1.0-79-g277a7812ef0944a811a61f6164c0e9e3e1b3448d
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/settings-security-privacy
   track: main
-  ref: 8.0.2-20-g117468c632315b190a96d07e18a161090a8c6f85
+  ref: 8.0.2-23-g15142e14f3d88c640a54f570acfe4c37bff46a3e
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

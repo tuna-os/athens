@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/settings-datetime.git
   track: main
-  ref: 8.1.0-55-g70be7ebb8d7a6df860397392a37e4c506e5d9c13
+  ref: 8.1.0-57-gc4de7a3fe66454f327a2162f3ee5b0ff194bb8e0
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

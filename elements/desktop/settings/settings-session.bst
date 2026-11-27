@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/session-settings.git
   track: main
-  ref: 8.1.0-10-g10e8d30652dc522b68585561980f9b5afe8a6a1d
+  ref: 8.1.0-15-g467f5c56e3c74d3974a038635cde2b7a6bb16872
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

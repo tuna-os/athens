@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/icons.git
   track: main
-  ref: 9.0.0-43-gf525fd784cdc409d508593fd36a2e45f1a56240d
+  ref: 9.0.0-53-g15f39396167bc8eb188d9e256bc79058ff4615f9
 
 runtime-depends:
  - freedesktop-sdk.bst:components/gdk-pixbuf.bst

@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/settings-power.git
   track: main
-  ref: 8.1.0-26-g0eb59d3af2e48a24b3ecf436943eddd585187268
+  ref: 8.1.0-29-g1d3ac9870172105a5c1c72ccffd25009db325932
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

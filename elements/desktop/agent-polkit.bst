@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/pantheon-agent-polkit.git
   track: main
-  ref: 8.1.0-13-g7348cdafd98e2a35f641f09dcc741729669b7cc7
+  ref: 8.1.0-17-g8a3785a4ccaf7f063fc8e5967fd9923725f8592e
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

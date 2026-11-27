@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/granite.git
   track: main
-  ref: 7.8.1-150-g8b5f0eaeb0a38256174aa7e557c2dc6f2bf9dc8b
+  ref: 7.8.1-172-g95fe4658b9e8349b231b640b329b75a04486a394
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

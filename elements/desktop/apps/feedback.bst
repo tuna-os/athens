@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/feedback.git
   track: main
-  ref: 8.1.1-35-gb1b918eb00bf47b80119893746a83000fd54ea52
+  ref: 8.1.1-41-g397d6327a56df362ca9ee2049bc2ec4ac2bd2958
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst

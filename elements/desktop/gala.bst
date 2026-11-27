@@ -4,7 +4,7 @@ sources:
 - kind: git_repo
   url: github:elementary/gala.git
   track: main
-  ref: 8.6.2-41-g00ad9d06b45126cefe23ee50a100c7706154d8b8
+  ref: 8.6.2-80-g6c6e05ef753914146d8c5fd35ff58a53dd63ee43
 
 build-depends:
 - freedesktop-sdk.bst:public-stacks/buildsystem-meson.bst
